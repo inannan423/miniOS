@@ -115,15 +115,25 @@ void os::initTemps() {
     nowUser = -1;
 }
 
+string formatTime(int m){
+    // 先转换为 string
+    string str = to_string(m);
+    // 如果小于 2 位，前面补 0
+    if (str.length() < 2) {
+        str = "0" + str;
+    }
+    return str;
+}
+
 // 获取当前时间，输出为 202305301454 的形式
 string getCurrentTime() {
     time_t now = time(0);
     tm *ltm = localtime(&now);
-    string year = intToString(1900 + ltm->tm_year, 4);
-    string month = intToString(1 + ltm->tm_mon, 2);
-    string day = intToString(ltm->tm_mday, 2);
-    string hour = intToString(ltm->tm_hour, 2);
-    string min = intToString(ltm->tm_min, 2);
+    string year = formatTime(1900+ltm->tm_year);
+    string month = formatTime(1+ltm->tm_mon);
+    string day = formatTime(ltm->tm_mday);
+    string hour = formatTime(ltm->tm_hour);
+    string min = formatTime(ltm->tm_min);
     return year + month + day + hour + min;
 }
 
@@ -455,6 +465,7 @@ int os::makeDirectory(int u) {
         user[u].root = voidFcb;
         return voidFcb;
     } else {
+        cout << "!!!!" << endl;
 //        cout << "Please input the name of the directory: ";
 //        string dirName;
 //        while (cin>>dirName){
@@ -514,6 +525,7 @@ void os::displayFileInfo(){
 
 // 从文件中读取指定 FCB 的内容
 vector<int> os::getFcbs(int fcb) {
+    cout<<"getFcbs"<<fcb<<endl;
     fstream file;
     string ss;
     file.open("disk.txt", ios::in | ios::out);
@@ -525,6 +537,7 @@ vector<int> os::getFcbs(int fcb) {
     string data = "";
     string temp;
     int fcbAddress = fcbs[fcb].address;
+    cout<<"fcbAddress"<<fcbAddress<<endl;
     while(true){
         file.seekg(userDataAddress + fcbAddress * 1024, ios::beg);
         if(fatBlock[fcbAddress] == 0){
@@ -540,9 +553,10 @@ vector<int> os::getFcbs(int fcb) {
     string s;
     vector<int> res;
     while (getline(iss, s, '%')) {
-        res.push_back(strtol(s.c_str(), nullptr, 10));
+        if (s != "") {
+            res.push_back(strtol(s.c_str(), nullptr, 10));
+        }
     }
-    file.close();
     return res;
 }
 
@@ -620,8 +634,8 @@ void os::userRegister() {
     user[u].isused = 1;
     user[u].root = 0;
     cout << "*** User " << user[u].username << " regist successfully!" << endl;
-    saveUserToFile(u);
     makeDirectory(u);
+    saveUserToFile(u);
 }
 
 // 实现用户登录逻辑
@@ -653,6 +667,7 @@ void os::userLogin() {
         dirStack.push_back(u);
         currentCatalog = user[u].root;
         catalogStack.push_back(currentCatalog);
+        cout<<"!"<<user[u].root<<endl;
         filesInCatalog = getFcbs(user[u].root);
         cout<<"* Welcome "<<user[u].username<<"!"<<endl;
         displayFileInfo();
