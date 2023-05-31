@@ -19,7 +19,7 @@
 
 #define modifedTimesLength 7
 #define userLength (25+4*2)*10  // 4*2 用于换行符
-#define fatLength (48+8*2)*9216
+#define fatLength (4+2)*9216
 #define bitMapLength (1+2)*9216
 
 // 存储目录结构
@@ -67,7 +67,7 @@ fcb *fcbs;  // fcb
 bool isLogin = false;   // 是否登录
 
 // 补齐位数存储，例如需要存为 4 位，但是只有 2 位，那么就在前面补 0
-string fillFileStrins(string str, int len) {
+string fillFileStrings(string str, int len) {
     int length = str.length();
     if (str.length() < len) {
         for (int i = 0; i < len - length; i++) {
@@ -80,7 +80,7 @@ string fillFileStrins(string str, int len) {
 // int 转 string
 string intToString(int num, int len) {
     string str = to_string(num);
-    return fillFileStrins(str, len);
+    return fillFileStrings(str, len);
 }
 
 // string 转 int
@@ -148,9 +148,9 @@ bool os::saveUserToFile(int u) {
     }
     file.seekg(modifedTimesLength + u * 33, ios::beg);
     file << user[u].isused << endl;
-    file << fillFileStrins(user[u].username, 12) << endl;
-    file << fillFileStrins(user[u].password, 8) << endl;
-    file << fillFileStrins(intToString(user[u].root, 4), 4) << endl;
+    file << fillFileStrings(user[u].username, 12) << endl;
+    file << fillFileStrings(user[u].password, 8) << endl;
+    file << fillFileStrings(intToString(user[u].root, 4), 4) << endl;
     file.close();
     return true;
 }
@@ -197,15 +197,17 @@ bool os::saveFcbToFile(int f) {
         cout << "Error: Can't open file!" << endl;
         return false;
     }
-    file.seekg(modifedTimesLength + userLength + fatLength + bitMapLength + 64 * f, ios::beg);
+    file.seekg(modifedTimesLength + userLength + fatLength + bitMapLength + 63 * f, ios::beg);
     file << fcbs[f].isused << endl;
     file << fcbs[f].isHide << endl;
-    file << fillFileStrins(fcbs[f].name, 20) << endl;
+    file << fillFileStrings(fcbs[f].name, 20) << endl;
     file << fcbs[f].type << endl;
     file << fcbs[f].user << endl;
-    file << fcbs[f].size << endl;
-    file << fcbs[f].address << endl;
-    file << fillFileStrins(fcbs[f].modifyTime, 12) << endl;
+    // size 7 位 补齐
+    file << fillFileStrings(intToString(fcbs[f].size, 7), 7) << endl;
+    // address 4 位 补齐
+    file << fillFileStrings(intToString(fcbs[f].address, 4), 4) << endl;
+    file << fillFileStrings(fcbs[f].modifyTime, 12) << endl;
     file.close();
     return true;
 }
@@ -240,15 +242,17 @@ bool os::saveFileSys(int f, string content) {
         return false;
     }
     // 定位到 fcbs 开始的位置
-    file.seekg(modifedTimesLength + userLength + fatLength + bitMapLength + 64 * f, ios::beg);
+    file.seekg(modifedTimesLength + userLength + fatLength + bitMapLength + 63 * f, ios::beg);
     file << fcbs[f].isused << endl;
     file << fcbs[f].isHide << endl;
-    file << fillFileStrins(fcbs[f].name, 20) << endl;
+    file << fillFileStrings(fcbs[f].name, 20) << endl;
     file << fcbs[f].type << endl;
     file << fcbs[f].user << endl;
-    file << fcbs[f].size << endl;
-    file << fcbs[f].address << endl;
-    file << fillFileStrins(fcbs[f].modifyTime, 12) << endl;
+    // size 7 位 补齐
+    file << fillFileStrings(intToString(fcbs[f].size, 7), 7) << endl;
+    // address 4 位 补齐
+    file << fillFileStrings(intToString(fcbs[f].address, 4), 4) << endl;
+    file << fillFileStrings(fcbs[f].modifyTime, 12) << endl;
     // 定位到用户数据块
     file.seekg(userDataAddress + fcbs[f].address * 1026, ios::beg);  // 1024 + 2（换行符）
     int blockNum = fcbs[f].size / 1024;   // 用于记录当前文件需要多少个块
@@ -321,18 +325,25 @@ bool os::saveFileSys(int f, vector<int> content) {
         return false;
     }
     // 定位到 fcbs 开始的位置
-    file.seekg(modifedTimesLength + userLength + fatLength + bitMapLength + 64 * f, ios::beg);
+    file.seekg(modifedTimesLength + userLength + fatLength + bitMapLength + 63 * f, ios::beg);
+
+
     file << fcbs[f].isused << endl;
     file << fcbs[f].isHide << endl;
-    file << fillFileStrins(fcbs[f].name, 20) << endl;
+    file << fillFileStrings(fcbs[f].name, 20) << endl;
     file << fcbs[f].type << endl;
     file << fcbs[f].user << endl;
-    file << fcbs[f].size << endl;
-    file << fcbs[f].address << endl;
-    file << fillFileStrins(fcbs[f].modifyTime, 12) << endl;
+    // size 7 位 补齐
+    file << fillFileStrings(intToString(fcbs[f].size, 7), 7) << endl;
+    // address 4 位 补齐
+    file << fillFileStrings(intToString(fcbs[f].address, 4), 4) << endl;
+    file << fillFileStrings(fcbs[f].modifyTime, 12) << endl;
+
+
+
     // 定位到用户数据块
     file.seekg(userDataAddress + fcbs[f].address * 1026, ios::beg);  // 1024 + 2（换行符）
-    int blockNum = fcbs[f].size / 1024;   // 用于记录当前文件需要多少个块
+    int blockNum = fcbs[f].size / 1020;   // 用于记录当前文件需要多少个块
     string temp;    // 用于记录当前块的内容
     int addressPointer = 0;  // 用于记录当前块的地址指针
     int nowAddress = fcbs[f].address;   // 用于记录当前块的地址
@@ -340,11 +351,11 @@ bool os::saveFileSys(int f, vector<int> content) {
         if (blockNum <= 0) {
             break;
         }
-        int max = addressPointer + 1024;
+        int max = addressPointer + 204;
         for (int i = addressPointer; i < max; i++) {
             file << intToString(content[i], 4) << "%";
         }
-        file << "     " << endl;
+        file << "    " << endl;
         blockNum--;
         fatBlock[nowAddress] = getEmptyBlock();
         if (fatBlock[nowAddress] == -1) {
@@ -449,7 +460,8 @@ int os::makeDirectory(int u) {
             deleteFileSystemFile(voidFcb);
             deleteFileSystemFile(voidFcbFile);
             return -1;
-        } else {
+        }
+        else {
             cout << "Create directory successfully!" << endl;
         }
         string info = "This is temporary README.txt.";
@@ -693,9 +705,9 @@ void os::createFileSys() {
     // 写入初始化的用户信息
     for (int i = 0; i < 10; i++) {
         file << user[i].isused << endl;
-        file << fillFileStrins(user[i].username, 12) << endl;
-        file << fillFileStrins(user[i].password, 8) << endl;
-        file << fillFileStrins(intToString(user[i].root, 4), 4) << endl;
+        file << fillFileStrings(user[i].username, 12) << endl;
+        file << fillFileStrings(user[i].password, 8) << endl;
+        file << fillFileStrings(intToString(user[i].root, 4), 4) << endl;
     }
     // 写入初始化的 fat block 信息
     for (int i = 0; i < maxBlockCount; i++) {
@@ -709,12 +721,13 @@ void os::createFileSys() {
     for (int i = 0; i < maxBlockCount; i++) {
         file << fcbs[i].isused << endl;
         file << fcbs[i].isHide << endl;
-        file << fillFileStrins(fcbs[i].name, 20) << endl;
+        file << fillFileStrings(fcbs[i].name, 20) << endl;
         file << fcbs[i].type << endl;
         file << fcbs[i].user << endl;
-        file << fcbs[i].size << endl;
+        // size 7 位 补齐
+        file << fillFileStrings(intToString(fcbs[i].size, 7), 7) << endl;
         file << intToString(fcbs[i].address, 4) << endl;
-        file << fillFileStrins(fcbs[i].modifyTime, 12) << endl;
+        file << fillFileStrings(fcbs[i].modifyTime, 12) << endl;
     }
     // 定位到用户数据
     file.seekg(userDataAddress, ios::beg);
