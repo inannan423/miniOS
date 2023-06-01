@@ -109,4 +109,10 @@ private:
     string openFile(int n);
 
     bool rename(string arg);
+
+    bool openFileMode(string arg);
+
+    bool reWrite(int f);
+
+    bool appendWrite(int f);
 };

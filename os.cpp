@@ -13,15 +13,6 @@
 #include <cstdlib>
 #include <sstream>
 
-#define RESET   "\033[0m"
-#define RED     "\033[31m"      /* Red */
-#define GREEN   "\033[32m"      /* Green */
-#define YELLOW  "\033[33m"      /* Yellow */
-#define BLUE    "\033[34m"      /* Blue */
-#define MAGENTA "\033[35m"      /* Magenta */
-#define CYAN    "\033[36m"      /* Cyan */
-#define WHITE   "\033[37m"      /* White */
-
 #define userDataAddress 1048576 // 用户数据区起始地址
 #define maxBlockCount 9216  // 最大块数
 #define maxUserCount 10 // 最大用户数
@@ -505,8 +496,8 @@ int os::makeDirectory(int u) {
         // 表示指令级创建目录操作
         cout << "Please input the name of the directory: ";
         string dirName;
-        while (cin>>dirName){
-            if (dirName == "root"){
+        while (cin >> dirName) {
+            if (dirName == "root") {
                 cout << "Error: Can't create root directory!" << endl;
                 cout << "Please input the name of the directory: ";
                 continue;
@@ -517,12 +508,12 @@ int os::makeDirectory(int u) {
                 continue;
             }
             bool flag = false;
-            for (int i=0;i< filesInCatalog.size();i++){
-                if (fcbs[filesInCatalog[i]].name == dirName && fcbs[filesInCatalog[i]].type == 1){
+            for (int i = 0; i < filesInCatalog.size(); i++) {
+                if (fcbs[filesInCatalog[i]].name == dirName && fcbs[filesInCatalog[i]].type == 1) {
                     flag = true;
                 }
             }
-            if (flag){
+            if (flag) {
                 cout << "Error: Directory name is already exist!" << endl;
                 cout << "Please input the name of the directory: ";
                 continue;
@@ -559,7 +550,7 @@ int os::makeDirectory(int u) {
             cout << "Create directory successfully!" << endl;
         }
         filesInCatalog.push_back(voidFcb);
-        for (int i=2;i<catalogStack.size();i++){
+        for (int i = 2; i < catalogStack.size(); i++) {
             fcbs[catalogStack[i]].modifyTime = getCurrentTime();
             saveFcbToFile(catalogStack[i]);
         }
@@ -572,21 +563,21 @@ int os::makeDirectory(int u) {
 
 int os::makeFile() {
     // 指令级创建文件操作
-    cout<<"Please input the name of the file: ";
+    cout << "Please input the name of the file: ";
     string fileName;
-    while (cin>>fileName){
+    while (cin >> fileName) {
         if (fileName.size() > 20) {
             cout << "Error: File name is too long!" << endl;
             cout << "Please input the name of the file: ";
             continue;
         }
         bool flag = false;
-        for (int i=0;i< filesInCatalog.size();i++){
-            if (fcbs[filesInCatalog[i]].name == fileName && fcbs[filesInCatalog[i]].type == 0){
+        for (int i = 0; i < filesInCatalog.size(); i++) {
+            if (fcbs[filesInCatalog[i]].name == fileName && fcbs[filesInCatalog[i]].type == 0) {
                 flag = true;
             }
         }
-        if (flag){
+        if (flag) {
             cout << "Error: File name is already exist!" << endl;
             cout << "Please input the name of the file: ";
             continue;
@@ -623,7 +614,7 @@ int os::makeFile() {
         cout << "Create file successfully!" << endl;
     }
     filesInCatalog.push_back(voidFcb);
-    for (int i=2;i<catalogStack.size();i++){
+    for (int i = 2; i < catalogStack.size(); i++) {
         fcbs[catalogStack[i]].modifyTime = getCurrentTime();
         saveFcbToFile(catalogStack[i]);
     }
@@ -633,9 +624,9 @@ int os::makeFile() {
     return voidFcb;
 }
 
-int os::makeFile(string name,string content){
+int os::makeFile(string name, string content) {
     int n = getEmptyFcb();
-    if (n == -1){
+    if (n == -1) {
         cout << "Error: No space for new file!" << endl;
         return -1;
     }
@@ -648,17 +639,17 @@ int os::makeFile(string name,string content){
     fcbs[n].address = getEmptyBlock();
     fcbs[n].modifyTime = getCurrentTime();
 
-    if(fcbs[n].address == -1){
+    if (fcbs[n].address == -1) {
         cout << "Error: No space for new file!" << endl;
         return -1;
     }
-    if (!saveFileSys(n, content)){
+    if (!saveFileSys(n, content)) {
         cout << "Error: No space for new file!" << endl;
         deleteFileSystemFile(n);
         return -1;
     }
     filesInCatalog.push_back(n);
-    for (int i=2;i<catalogStack.size();i++){
+    for (int i = 2; i < catalogStack.size(); i++) {
         fcbs[catalogStack[i]].modifyTime = getCurrentTime();
         saveFcbToFile(catalogStack[i]);
     }
@@ -668,11 +659,11 @@ int os::makeFile(string name,string content){
     return n;
 }
 
-void os::findAllFiles(vector<int> &files, int fcb){
+void os::findAllFiles(vector<int> &files, int fcb) {
     files.push_back(fcb);
     vector<int> temp = openDirectory(fcb);
-    for (int i=0;i<temp.size();i++){
-        if (fcbs[temp[i]].type == 1){
+    for (int i = 0; i < temp.size(); i++) {
+        if (fcbs[temp[i]].type == 1) {
             findAllFiles(files, temp[i]);
         } else {
             files.push_back(temp[i]);
@@ -706,12 +697,12 @@ void os::findAllFiles(vector<int> &files, int fcb){
 //}
 
 // 删除子目录
-int os::removeDirectory(string name){
+int os::removeDirectory(string name) {
     // name 是空格隔开的字符串, 例如 "dir1 dir2 dir3" ，将其转换为 vector
     vector<string> dirNames;
     string temp;
-    for (int i=0;i<name.size();i++){
-        if (name[i] == ' '){
+    for (int i = 0; i < name.size(); i++) {
+        if (name[i] == ' ') {
             dirNames.push_back(temp);
             temp = "";
         } else {
@@ -721,7 +712,7 @@ int os::removeDirectory(string name){
     dirNames.push_back(temp);
     int n = -1;
     int deleteNumber;
-    for (int i=0;i<dirNames.size();i++) {
+    for (int i = 0; i < dirNames.size(); i++) {
         for (int j = 0; j < filesInCatalog.size(); j++) {
             if (fcbs[filesInCatalog[j]].name == dirNames[i] && fcbs[filesInCatalog[j]].type == 1) {
                 n = filesInCatalog[j];
@@ -753,9 +744,9 @@ void os::displayFileInfo() {
         return;
     }
     for (int i = 0; i < filesInCatalog.size(); i++) {
-        if (fcbs[filesInCatalog[i]].user == nowUser){
+        if (fcbs[filesInCatalog[i]].user == nowUser) {
             // 显示文件信息
-            cout<<fcbs[filesInCatalog[i]].name<<(fcbs[filesInCatalog[i]].type == 1?"(dir)":"")<<"\t";
+            cout << fcbs[filesInCatalog[i]].name << (fcbs[filesInCatalog[i]].type == 1 ? "(dir)" : "") << "\t";
         }
     }
     cout << endl;
@@ -782,7 +773,7 @@ vector<int> os::getFcbs(int fcb) {
         file >> temp;
         data += temp;
         fcbAddress = fatBlock[fcbAddress];  // 下一个数据块
-        cout<<"!!"<<endl;
+        cout << "!!" << endl;
     }
     file >> temp;
     data += temp;
@@ -1154,11 +1145,11 @@ void os::showFileList() {
 }
 
 // 打开目录，读取目录下的文件
-vector<int> os::openDirectory(int f){
+vector<int> os::openDirectory(int f) {
     fstream file;
     string ss;
-    file.open("disk.txt", ios::in|ios::out);
-    if (!file.is_open()){
+    file.open("disk.txt", ios::in | ios::out);
+    if (!file.is_open()) {
         cout << "Error: Failed to open disk" << endl;
         vector<int> error;
         return error;
@@ -1167,22 +1158,22 @@ vector<int> os::openDirectory(int f){
     string data = "";
     string temp;
     int address = fcbs[f].address;
-    while (true){
-        file.seekg(userDataAddress+address*1026, ios::beg);
-        if (fatBlock[address] == 0){
+    while (true) {
+        file.seekg(userDataAddress + address * 1026, ios::beg);
+        if (fatBlock[address] == 0) {
             break;
         }
-        file>>temp;
+        file >> temp;
         data += temp;
         address = fatBlock[address];
     }
-    file>>temp;
+    file >> temp;
     data += temp;
     istringstream is(data);
     string s;
     vector<int> res;
-    while (getline(is, s, '%')){
-        if (s!=""){
+    while (getline(is, s, '%')) {
+        if (s != "") {
             res.push_back(::strtol(s.c_str(), nullptr, 10));
         }
     }
@@ -1198,77 +1189,75 @@ void os::cd(const string &filename) {
         iss >> sub;
         v.push_back(sub);
     }
-    switch (v[0][0]){
-        case '.':
-        {
-            if (v[0]==".."){
-                if (catalogStack.size()==1){
+    switch (v[0][0]) {
+        case '.': {
+            if (v[0] == "..") {
+                if (catalogStack.size() == 1) {
                     cout << "Error: No such directory" << endl;
                     return;
                 } else {
-                    currentCatalog = catalogStack[catalogStack.size()-2];
+                    currentCatalog = catalogStack[catalogStack.size() - 2];
                     catalogStack.pop_back();
                     filesInCatalog = openDirectory(currentCatalog);
                 }
-            }
-            else if (v[0]=="."){
+            } else if (v[0] == ".") {
                 // 保持当前目录不变
-            }
-            else{
+            } else {
                 cout << "Error: Invalid command" << endl;
                 return;
             }
-        } break;
-        default:
-        {
+        }
+            break;
+        default: {
             istringstream is(v[0]);
             string key;
             vector<string> temp;
-            while (getline(is, key, '/')){
-                if (key!=""){
+            while (getline(is, key, '/')) {
+                if (key != "") {
                     temp.push_back(key);
                 }
             }
             // 根据 temp 中的内容，找到对应的目录
-            if(temp[0]=="root"){
+            if (temp[0] == "root") {
                 // 如果要前往的目录是 root，则清除目录栈
                 catalogStack.clear();
                 catalogStack.push_back(nowUser);    // 当前目录为当前用户的根目录
                 filesInCatalog = openDirectory(user[nowUser].root);   // 打开当前用户的根目录
                 catalogStack.push_back(user[nowUser].root);   // 将当前用户的根目录压入目录栈
-                for (int i=1;i<temp.size();i++){
+                for (int i = 1; i < temp.size(); i++) {
                     bool flag = false;
-                    for (int j=0;j<filesInCatalog.size();j++){
-                        if (fcbs[filesInCatalog[j]].name==temp[i] && fcbs[filesInCatalog[j]].type==1){
+                    for (int j = 0; j < filesInCatalog.size(); j++) {
+                        if (fcbs[filesInCatalog[j]].name == temp[i] && fcbs[filesInCatalog[j]].type == 1) {
                             flag = true;
                             currentCatalog = filesInCatalog[j]; // 当前目录为找到的目录
                             catalogStack.push_back(currentCatalog); // 将当前目录压入目录栈
                             filesInCatalog = openDirectory(currentCatalog); // 打开当前目录
                         }
                     }
-                    if (!flag){
+                    if (!flag) {
                         cout << "Error: No such directory" << endl;
                         return;
                     }
                 }
             } else {
-                for (int i=0;i<temp.size();i++){
+                for (int i = 0; i < temp.size(); i++) {
                     bool flag = false;
-                    for (int j=0;j<filesInCatalog.size();j++){
-                        if (fcbs[filesInCatalog[j]].name==temp[i] && fcbs[filesInCatalog[j]].type==1){
+                    for (int j = 0; j < filesInCatalog.size(); j++) {
+                        if (fcbs[filesInCatalog[j]].name == temp[i] && fcbs[filesInCatalog[j]].type == 1) {
                             flag = true;
                             currentCatalog = filesInCatalog[j]; // 当前目录为找到的目录
                             catalogStack.push_back(currentCatalog); // 将当前目录压入目录栈
                             filesInCatalog = openDirectory(currentCatalog); // 打开当前目录
                         }
                     }
-                    if (!flag){
+                    if (!flag) {
                         cout << "Error: No such directory" << endl;
                         return;
                     }
                 }
             }
-        }   break;
+        }
+            break;
     }
     // 打印现在的 catalogStack
 //    cout << "Current directory: ";
@@ -1279,11 +1268,11 @@ void os::cd(const string &filename) {
 //    cout<<"currentCatalog"<<currentCatalog<<endl;
 }
 
-string os::openFile(int n){
+string os::openFile(int n) {
     fstream file;
     string ss;
-    file.open("disk.txt", ios::in|ios::out);
-    if (!file.is_open()){
+    file.open("disk.txt", ios::in | ios::out);
+    if (!file.is_open()) {
         cout << "Error: Failed to open disk" << endl;
         return "";
     }
@@ -1294,19 +1283,19 @@ string os::openFile(int n){
     int len = 0;
     int round = 0;
 
-    while (true){
-        file.seekg(userDataAddress+address*1026, ios::beg);
-        if (fatBlock[address] == 0){
+    while (true) {
+        file.seekg(userDataAddress + address * 1026, ios::beg);
+        if (fatBlock[address] == 0) {
             break;
         }
         len = 0;
         round = 1;
         getline(file, temp);
         data += temp;
-        while (true){
+        while (true) {
             len += temp.size();
             // 当前块的数据已经读完
-            if (len +2*round >= 1026){
+            if (len + 2 * round >= 1026) {
                 break;
             }
             getline(file, temp);
@@ -1327,12 +1316,12 @@ string os::openFile(int n){
                 i--;
         }
     }
-    if (temp=="%"){
+    if (temp == "%") {
         temp = "";
     }
     data += temp;
-    while (true){
-        if (len + 2*round >= 1026){
+    while (true) {
+        if (len + 2 * round >= 1026) {
             break;
         }
         getline(file, temp);
@@ -1344,7 +1333,7 @@ string os::openFile(int n){
                     i--;
             }
         }
-        if (temp=="%"){
+        if (temp == "%") {
             temp = "";
         }
         data += '\n';
@@ -1355,7 +1344,51 @@ string os::openFile(int n){
     return data;
 }
 
-int os::importFileFromOut(string arg){
+bool os::reWrite(int f){
+    cout << "Are you sure to rewrite the file? (y/n)";
+    string choice;
+    cin >> choice;
+    if (choice == "y") {
+        cout<<"Please input the new content: ";
+        string data;
+        cin>>data;
+        if(!saveFileSys(f,data)){
+            cout<<"Error: The file cannot be rewritten";
+            return false;
+        }
+        return true;
+    } else if (choice == "n") {
+        return false;
+    } else {
+        cout << "Error: The input is wrong";
+        return false;
+    }
+}
+
+bool os::appendWrite(int f){
+    cout << "Are you sure to append the file? (y/n)";
+    string choice;
+    cin >> choice;
+    if (choice == "y") {
+        string data= openFile(f);
+        cout<<"Please input the content you want to append: ";
+        string temp;
+        cin>>temp;
+        data+=temp;
+        if(!saveFileSys(f,data)){
+            cout<<"Error: The file cannot be appended";
+            return false;
+        }
+        return true;
+    } else if (choice == "n") {
+        return false;
+    } else {
+        cout << "Error: The input is wrong";
+        return false;
+    }
+}
+
+int os::importFileFromOut(string arg) {
     // arg 是由空格分隔的字符串，将其拆分为 vector
     vector<string> v;
     istringstream iss(arg);
@@ -1365,50 +1398,50 @@ int os::importFileFromOut(string arg){
         v.push_back(sub);
     }
     string name;
-    cout<<"Please input the name of the file you want to import: ";
-    while (cin>>name){
-        if(name.size()>20){
-            cout<<"Error: The name of the file is too long"<<endl;
-            cout<<"Please input the name of the file you want to import: ";
+    cout << "Please input the name of the file you want to import: ";
+    while (cin >> name) {
+        if (name.size() > 20) {
+            cout << "Error: The name of the file is too long" << endl;
+            cout << "Please input the name of the file you want to import: ";
             continue;
         }
         bool flag = false;
-        for (int i=0;i<filesInCatalog.size();i++){
-            if (fcbs[filesInCatalog[i]].name==name && fcbs[filesInCatalog[i]].type==0){
+        for (int i = 0; i < filesInCatalog.size(); i++) {
+            if (fcbs[filesInCatalog[i]].name == name && fcbs[filesInCatalog[i]].type == 0) {
                 flag = true;
             }
         }
-        if (flag){
-            cout<<"Error: The file already exists"<<endl;
-            cout<<"Please input the name of the file you want to import: ";
+        if (flag) {
+            cout << "Error: The file already exists" << endl;
+            cout << "Please input the name of the file you want to import: ";
             continue;
         }
         break;
     }
     fstream file;
     file.open(v[0], ios::in);
-    if (!file){
-        cout<<"Error: The file does not exist"<<endl;
+    if (!file) {
+        cout << "Error: The file does not exist" << endl;
         return 0;
     }
     string data;
     string temp;
     try {
-        while(!file.eof()){
+        while (!file.eof()) {
             getline(file, temp);
             data += temp;
             data += "\n";
         }
         makeFile(name, data);
-    } catch(const std::exception &e) {
-        cout<< e.what() <<endl;
+    } catch (const std::exception &e) {
+        cout << e.what() << endl;
         return 0;
     }
-    cout<<"Import successfully!"<<endl;
+    cout << "Import successfully!" << endl;
     return 1;
 }
 
-int os::exportFileToOut(string arg){
+int os::exportFileToOut(string arg) {
     // arg 是由空格分隔的字符串，将其拆分为 vector
     vector<string> v;
     istringstream iss(arg);
@@ -1418,35 +1451,35 @@ int os::exportFileToOut(string arg){
         v.push_back(sub);
     }
     int n = -1;
-    for (int i=0;i<filesInCatalog.size();i++){
-        if (fcbs[filesInCatalog[i]].name==v[0]){
+    for (int i = 0; i < filesInCatalog.size(); i++) {
+        if (fcbs[filesInCatalog[i]].name == v[0]) {
             n = filesInCatalog[i];
         }
     }
-    if (n==-1){
-        cout<<"Error: The file does not exist"<<endl;
+    if (n == -1) {
+        cout << "Error: The file does not exist" << endl;
         return 0;
     }
     fstream file;
-    if(v.size()==2){
+    if (v.size() == 2) {
         v.push_back("");
     }
     // v[2]+fcbs[n].name+'.txt' 拼凑为字符串
     string fileName = "exported.txt";
     // 判断文件是否存在，没有就创建
     file.open(fileName, ios::in | ios::out);
-    if(!file.is_open()){
-        cout<<"Error: The file cannot be exported"<<endl;
+    if (!file.is_open()) {
+        cout << "Error: The file cannot be exported" << endl;
         return 0;
     }
     string data = openFile(n);
     file << data;
-    cout<<"Export successfully!"<<endl;
+    cout << "Export successfully!" << endl;
     return 1;
 }
 
 // rename test.txt test2.txt
-bool os::rename(string arg){
+bool os::rename(string arg) {
     //    arg 是由空格分隔的字符串，将其拆分为 vector
     vector<string> v;
     istringstream iss(arg);
@@ -1456,40 +1489,155 @@ bool os::rename(string arg){
         v.push_back(sub);
     }
     // 如果 v.size() == 3 ，则删除最后一个元素
-    if (v.size()==3){
+    if (v.size() == 3) {
         v.pop_back();
     }
     // v[0] 是原文件名，v[1] 是新文件名
     // 如果参数不足,或第二个参数为空格或空
-    if (v.size()!=2 || v[1].size()==0){
-        cout<<"Error: The number of parameters is wrong"<<endl;
+    if (v.size() != 2 || v[1].size() == 0) {
+        cout << "Error: The number of parameters is wrong" << endl;
         return false;
     }
     int n = -1;
-    for (int i=0;i<filesInCatalog.size();i++){
-        if (fcbs[filesInCatalog[i]].name==v[0]){
+    for (int i = 0; i < filesInCatalog.size(); i++) {
+        if (fcbs[filesInCatalog[i]].name == v[0]) {
             n = filesInCatalog[i];
         }
     }
-    if (n==-1){
-        cout<<"Error: The file does not exist"<<endl;
+    if (n == -1) {
+        cout << "Error: The file does not exist" << endl;
         return false;
     }
-    if (v[1].size()>20){
-        cout<<"Error: The name of the file is too long"<<endl;
+    if (v[1].size() > 20) {
+        cout << "Error: The name of the file is too long" << endl;
         return false;
     }
-    for (int i=0;i<filesInCatalog.size();i++){
-        if (fcbs[filesInCatalog[i]].name==v[1]){
-            cout<<"Error: The file already exists"<<endl;
+    for (int i = 0; i < filesInCatalog.size(); i++) {
+        if (fcbs[filesInCatalog[i]].name == v[1]) {
+            cout << "Error: The file already exists" << endl;
             return false;
         }
     }
     fcbs[n].name = v[1];
     fcbs[n].modifyTime = getCurrentTime();
     saveFcbToFile(n);
-    cout<<"Rename successfully!"<<endl;
+    cout << "Rename successfully!" << endl;
     return true;
+}
+
+bool os::openFileMode(string arg) {
+    //    arg 是由空格分隔的字符串，将其拆分为 vector
+    vector<string> v;
+    istringstream iss(arg);
+    while (iss) {
+        string sub;
+        iss >> sub;
+        v.push_back(sub);
+    }
+
+    int openingFile = -1;  // 当前打开的文件
+    int flag = false;
+    for (int i = 0; i < filesInCatalog.size(); i++) {
+        if (fcbs[filesInCatalog[i]].name == v[0]) {
+            if (fcbs[filesInCatalog[i]].type == 1) {
+                cout << "Error: The file is a directory" << endl;
+                return false;
+            }
+            openingFile = filesInCatalog[i];
+            flag = true;
+            cout << "Open successfully!" << endl;
+            // 跳出循环
+            break;
+        }
+    }
+
+    if (!flag) {
+        cout << "Error: The file does not exist" << endl;
+        return false;
+    }
+
+    cout<<"You can put in the following commands:"<<endl;
+    cout<<"* read: output the content of the file"<<endl;
+    cout<<"* write -r/-a: rewrite/append the file"<<endl;
+    cout<<"* close: close the file"<<endl;
+    cout<<"* exit: exit file mode"<<endl;
+
+    vector<string> choice;
+    cout << "Please input the command:";
+    while (true) {
+        // 输入 choice
+        string temp;
+        getline(cin, temp);
+        choice.clear();
+        istringstream iss(temp);
+        while (iss) {
+            string sub;
+            iss >> sub;
+            choice.push_back(sub);
+        }
+        switch (choice[0][0]) {
+            case 'r':
+                if (choice[0] == "read") {
+                    cout << openFile(openingFile) << endl;
+                    cout << "Please input the next command:";
+                } else {
+                    cout << "Error: Wrong command" << endl;
+                }
+                break;
+            case 'w':
+                {
+                    // 将 choice 拆分为 vector
+                    vector<string> v;
+                    v = choice;
+                    // 如果 v[1] 为空格或空
+                    if (v.size() == 1 || v[1].empty()) {
+                        cout << "Error: The number of parameters is wrong" << endl;
+                        cout << "Please input the next command:";
+                        break;
+                    }
+                    if (v[0] == "write") {
+                        if (v[1] == "-r") {
+                            reWrite(openingFile);
+                            cin.ignore();
+                            cout << "Write successfully!" << endl;
+                        } else if (v[1] == "-a") {
+                            appendWrite(openingFile);
+                            cin.ignore();
+                            cout << "Append successfully!" << endl;
+                        } else {
+                            cout << "SError: Wrong command" << endl;
+                        }
+                        cout << "Please input the next command:";
+                    } else {
+                        cout << "?Error: Wrong command" << endl;
+                        cout << "Please input the next command:";
+                    }
+                } break;
+            case 'c':
+                if (choice[0] == "close") {
+                    openingFile = -1;
+                    cout << "Close successfully!" << endl;
+                    return true;
+                } else {
+                    cout << "Error: Wrong command" << endl;
+                    cout << "Please input the next command:";
+                }
+                break;
+            case 'e':
+                if (choice[0] == "exit") {
+                    cout << "Exit successfully!" << endl;
+                    return true;
+                } else {
+                    cout << "Error: Wrong command！Do you main \"exit\"?" << endl;
+                    cout << "Please input the next command:";
+                }
+                break;
+            default:
+                cout << "QError: Wrong command" << endl;
+                cout << "Please input the next command:";
+                break;
+        }
+    }
 }
 
 void os::showTime() {
@@ -1499,18 +1647,18 @@ void os::showTime() {
          << ltm->tm_hour << ":" << ltm->tm_min << ":" << ltm->tm_sec << endl;
 }
 
-void os::showVersion(){
+void os::showVersion() {
     cout << "MiniOS " << VERSION << endl;
     cout << "Made by ChengZihan,BJFU" << endl;
-    cout << "* June 1st, 2023"<<endl;
-    cout << "GitHub:"<<" https://github.com/inannan423 "<<endl;
+    cout << "* June 1st, 2023" << endl;
+    cout << "GitHub:" << " https://github.com/inannan423 " << endl;
 }
 
 // cmd 线程，用于接收用户输入
 void os::run() {
     // 线程 1：命令行线程
     cmd = this_thread::get_id();
-    std::cout << "* Welcome to MiniOS"<< VERSION << std::endl;
+    std::cout << "* Welcome to MiniOS" << VERSION << std::endl;
     std::cout << "\n"
                  "       ██╗███████╗████████╗ ██████╗ ███████╗\n"
                  "       ██║██╔════╝╚══██╔══╝██╔═══██╗██╔════╝\n"
@@ -1528,13 +1676,13 @@ void os::run() {
             userLogin();
         } else {
             // 显示前缀 [用户名@主机名 /根目录/../../当前目录]$
-            cout << "" << user[nowUser].username << "@MiniOS "<<user[nowUser].username<<"/";
-            for (int i=1;i<catalogStack.size();i++){
-                if(fcbs[catalogStack[i]].name!=user[nowUser].username){
-                    cout<<fcbs[catalogStack[i]].name<<"/";
+            cout << "" << user[nowUser].username << "@MiniOS " << user[nowUser].username << "/";
+            for (int i = 1; i < catalogStack.size(); i++) {
+                if (fcbs[catalogStack[i]].name != user[nowUser].username) {
+                    cout << fcbs[catalogStack[i]].name << "/";
                 }
             }
-            cout<<":$ ";
+            cout << ":$ ";
 
             cin >> command;
             if (command == "help") {
@@ -1620,18 +1768,9 @@ void os::run() {
                 ready = true;
                 cv.notify_all();
                 cv.wait(lock, [this] { return !ready; });
-            } else if (command == "open") {
-                string arg;
-                getline(cin, arg);
-                argument = arg;
-                unique_lock<mutex> lock(m);
-                message = 8;
-                ready = true;
-                cv.notify_all();
-                cv.wait(lock, [this] { return !ready; });
             }
-            // rmdir
-            else if (command == "rmdir"){
+                // rmdir
+            else if (command == "rmdir") {
                 string arg;
                 getline(cin, arg);
                 argument = arg;
@@ -1641,8 +1780,8 @@ void os::run() {
                 cv.notify_all();
                 cv.wait(lock, [this] { return !ready; });
             }
-            // time 显示系统时间
-            else if (command == "time"){
+                // time 显示系统时间
+            else if (command == "time") {
                 string arg;
                 getline(cin, arg);
                 argument = arg;
@@ -1652,8 +1791,8 @@ void os::run() {
                 cv.notify_all();
                 cv.wait(lock, [this] { return !ready; });
             }
-            // ver 显示系统版本
-            else if (command == "ver"){
+                // ver 显示系统版本
+            else if (command == "ver") {
                 string arg;
                 getline(cin, arg);
                 argument = arg;
@@ -1663,8 +1802,8 @@ void os::run() {
                 cv.notify_all();
                 cv.wait(lock, [this] { return !ready; });
             }
-            // import
-            else if (command == "import"){
+                // import
+            else if (command == "import") {
                 string arg;
                 getline(cin, arg);
                 argument = arg;
@@ -1674,8 +1813,8 @@ void os::run() {
                 cv.notify_all();
                 cv.wait(lock, [this] { return !ready; });
             }
-            // export
-            else if (command == "export"){
+                // export
+            else if (command == "export") {
                 string arg;
                 getline(cin, arg);
                 argument = arg;
@@ -1685,8 +1824,8 @@ void os::run() {
                 cv.notify_all();
                 cv.wait(lock, [this] { return !ready; });
             }
-            // rename
-            else if(command == "rename"){
+                // rename
+            else if (command == "rename") {
                 string arg;
                 getline(cin, arg);
                 argument = arg;
@@ -1696,7 +1835,17 @@ void os::run() {
                 cv.notify_all();
                 cv.wait(lock, [this] { return !ready; });
             }
-            else {
+                // open
+            else if (command == "open") {
+                string arg;
+                getline(cin, arg);
+                argument = arg;
+                unique_lock<mutex> lock(m);
+                message = 15;
+                ready = true;
+                cv.notify_all();
+                cv.wait(lock, [this] { return !ready; });
+            } else {
                 cout << command << ": command not found" << endl;
             }
         }
@@ -1772,7 +1921,7 @@ void os::run() {
             ready = false;  // ready 变为 false
             cv.notify_all();    // 唤醒所有线程
         }
-        // *6 mkdir 方法
+            // *6 mkdir 方法
         else if (message == 6) {
             makeDirectory(-1);
             saveModifyTimesToFile();
@@ -1790,8 +1939,8 @@ void os::run() {
             ready = false;  // ready 变为 false
             cv.notify_all();    // 唤醒
         }
-        // *9 rmdir 方法
-        else if (message == 9){
+            // *9 rmdir 方法
+        else if (message == 9) {
             if (argument.empty()) {
                 cout << "argument is empty!" << endl;
             } else {
@@ -1805,24 +1954,24 @@ void os::run() {
             ready = false;  // ready 变为 false
             cv.notify_all();    // 唤醒所有线程
         }
-        // *10 显示系统时间
-        else if (message == 10){
+            // *10 显示系统时间
+        else if (message == 10) {
             // 显示系统时间
             showTime();
             message = 0;
             ready = false;  // ready 变为 false
             cv.notify_all();    // 唤醒
         }
-        // *11 显示系统版本
-        else if (message == 11){
+            // *11 显示系统版本
+        else if (message == 11) {
             // 显示系统版本
             showVersion();
             message = 0;
             ready = false;  // ready 变为 false
             cv.notify_all();    // 唤醒
         }
-        // *import 导入外部文件
-        else if (message==12){
+            // *import 导入外部文件
+        else if (message == 12) {
             if (argument.empty()) {
                 cout << "argument is empty!" << endl;
             } else {
@@ -1836,8 +1985,8 @@ void os::run() {
             ready = false;  // ready 变为 false
             cv.notify_all();    // 唤醒所有线程
         }
-        // *export 导出文件
-        else if (message==13) {
+            // *export 导出文件
+        else if (message == 13) {
             if (argument.empty()) {
                 cout << "argument is empty!" << endl;
             } else {
@@ -1851,8 +2000,8 @@ void os::run() {
             ready = false;  // ready 变为 false
             cv.notify_all();    // 唤醒所有线程
         }
-        // *rename 重命名文件
-        else if (message==14) {
+            // *rename 重命名文件
+        else if (message == 14) {
             if (argument.empty()) {
                 cout << "argument is empty!" << endl;
             } else {
@@ -1865,6 +2014,21 @@ void os::run() {
             message = 0;
             ready = false;  // ready 变为 false
             cv.notify_all();    // 唤醒所有线程
+        }
+            // *open 打开
+        else if (message == 15) {
+            if (argument.empty()) {
+                cout << "argument is empty!" << endl;
+            } else {
+                // 去除首个空格
+                argument.erase(0, 1);
+                // 打开文件
+                openFileMode(argument);
+            }
+            argument = "";
+            message = 0;
+            ready = false;  // ready 变为 false
+            cv.notify_all();    // 唤醒
         }
     }
 }
