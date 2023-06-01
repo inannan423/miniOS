@@ -53,8 +53,8 @@
 | time | 显示当前时间 | `time` | ✔️ |
 | ver | 显示版本信息 | `ver` | ✔️ |
 | rename | 重命名文件 | `rename test.txt test2.txt` | ✔️ |
-| import | 导入文件 | `import c:\test.txt .` | ❌ |
-| export | 导出文件 | `export test.txt c:\` | ❌ |
+| import | 导入文件 | `import c:\test.txt .` | ✔️ |
+| export | 导出文件 | `export test.txt c:\` | ✔️ |
 | exit | 退出程序 | `exit` | ✔️ |
 
 - lseek 用于移动文件指针，第二个参数为偏移量，第三个参数为移动方式，0为从文件开头，1为从当前位置，2为从文件末尾。
