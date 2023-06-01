@@ -671,31 +671,6 @@ void os::findAllFiles(vector<int> &files, int fcb) {
     }
 }
 
-//int os::deleteDirOrFile(int f){
-//    int address = fcbs[f].address;
-//    vector<int> diffs;
-//    while(true){
-//        diffs.push_back(address);
-//        bitMap[address] = 0;
-//        address = fatBlock[address];
-//        if (address == 0){
-//            break;
-//        }
-//    }
-//    for (int i=0;i<diffs.size();i++){
-//        fatBlock[diffs[i]] = 0;
-//    }
-//    for (int i=0;i<filesInCatalog.size();i++){
-//        fcbs[filesInCatalog[i]].modifyTime = getCurrentTime();
-//        saveFcbToFile(filesInCatalog[i]);
-//    }
-//    fcbs[f].reset();
-//    saveFatBlockToFile();
-//    saveBitMapToFile();
-//    saveFcbToFile(f);
-//    return 1;
-//}
-
 // 删除子目录
 int os::removeDirectory(string name) {
     // name 是空格隔开的字符串, 例如 "dir1 dir2 dir3" ，将其转换为 vector
@@ -750,6 +725,20 @@ void os::displayFileInfo() {
         }
     }
     cout << endl;
+}
+
+void os::displayFileInfo(string args) {
+    // 实现 /** 参数,可以看到 ** 目录下的所有文件，如果没有这个目录，显示 "There is no file or directory."（绝对路径）
+    // 实现 /l 参数,可以看到文件的详细信息，包括文件名、文件类型、文件大小、文件创建时间、文件修改时间、文件所属用户
+    if (args == "l") {
+        for (int i = 0; i < filesInCatalog.size(); i++) {
+            if (fcbs[filesInCatalog[i]].user == nowUser) {
+                cout << "文件名 " << fcbs[filesInCatalog[i]].name << "\t" << "文件类型 " << (fcbs[filesInCatalog[i]].type == 1 ? "目录" : "文件") << "\t" << "文件大小 " << fcbs[filesInCatalog[i]].size << "\t" << "文件修改时间 " << fcbs[filesInCatalog[i]].modifyTime << "\t" << "文件所属用户 " << fcbs[filesInCatalog[i]].user << endl;
+            }
+        }
+    } else {
+        displayFileInfo();
+    }
 }
 
 // 从文件中读取指定 FCB 的内容
@@ -1343,16 +1332,16 @@ string os::openFile(int n) {
     return data;
 }
 
-bool os::reWrite(int f){
+bool os::reWrite(int f) {
     cout << "Are you sure to rewrite the file? (y/n)";
     string choice;
     cin >> choice;
     if (choice == "y") {
-        cout<<"Please input the new content: ";
+        cout << "Please input the new content: ";
         string data;
-        cin>>data;
-        if(!saveFileSys(f,data)){
-            cout<<"Error: The file cannot be rewritten";
+        cin >> data;
+        if (!saveFileSys(f, data)) {
+            cout << "Error: The file cannot be rewritten";
             return false;
         }
         return true;
@@ -1364,18 +1353,18 @@ bool os::reWrite(int f){
     }
 }
 
-bool os::appendWrite(int f){
+bool os::appendWrite(int f) {
     cout << "Are you sure to append the file? (y/n)";
     string choice;
     cin >> choice;
     if (choice == "y") {
-        string data= openFile(f);
-        cout<<"Please input the content you want to append: ";
+        string data = openFile(f);
+        cout << "Please input the content you want to append: ";
         string temp;
-        cin>>temp;
-        data+=temp;
-        if(!saveFileSys(f,data)){
-            cout<<"Error: The file cannot be appended";
+        cin >> temp;
+        data += temp;
+        if (!saveFileSys(f, data)) {
+            cout << "Error: The file cannot be appended";
             return false;
         }
         return true;
@@ -1385,6 +1374,37 @@ bool os::appendWrite(int f){
         cout << "Error: The input is wrong";
         return false;
     }
+}
+
+// lseek 函数，用于移动文件指针，参数为文件描述符，移动的字节数，执行后允许在指针位置进行写入，写入后进行保存，如果移动失败，返回-1
+bool os::lseek(int f, int n) {
+    string data = openFile(f);
+    if (data == "") {
+        cout<<"Error: void file"<<endl;
+        return false;
+    }
+    cout << "Please input the position you want to move to: ";
+    int pos;
+    cin >> pos;
+    if (pos > data.size()) {
+        cout << "Error: The position is out of range" << endl;
+        return false;
+    }
+    if (pos<0){
+        cout<<"Error: The position is out of range"<<endl;
+        return false;
+    }
+    cout << "Please input the content you want to write: ";
+    string temp;
+    cin >> temp;
+    // 将 temp 插入到 data 的 pos 位置（插入后 data 的长度会增加）
+    data.insert(pos, temp);
+    cout<<"data"<<data<<endl;
+    if (!saveFileSys(f, data)) {
+        cout << "Error: The file cannot be written";
+        return false;
+    }
+    return true;
 }
 
 int os::importFileFromOut(string arg) {
@@ -1555,11 +1575,12 @@ bool os::openFileMode(string arg) {
         return false;
     }
 
-    cout<<"You can put in the following commands:"<<endl;
-    cout<<"* read: output the content of the file"<<endl;
-    cout<<"* write -r/-a: rewrite/append the file"<<endl;
-    cout<<"* close: close the file"<<endl;
-    cout<<"* exit: exit file mode"<<endl;
+    cout << "You can put in the following commands:" << endl;
+    cout << "* read: output the content of the file" << endl;
+    cout << "* write -r/-a: rewrite/append the file" << endl;
+    cout << "* close: close the file" << endl;
+    cout << "* lseek: change the pointer of the file and edit from the pointer" << endl;
+    cout << "* exit: exit file mode" << endl;
 
     vector<string> choice;
     cout << "Please input the command:";
@@ -1583,35 +1604,35 @@ bool os::openFileMode(string arg) {
                     cout << "Error: Wrong command" << endl;
                 }
                 break;
-            case 'w':
-                {
-                    // 将 choice 拆分为 vector
-                    vector<string> v;
-                    v = choice;
-                    // 如果 v[1] 为空格或空
-                    if (v.size() == 1 || v[1].empty()) {
-                        cout << "Error: The number of parameters is wrong" << endl;
-                        cout << "Please input the next command:";
-                        break;
-                    }
-                    if (v[0] == "write") {
-                        if (v[1] == "-r") {
-                            reWrite(openingFile);
-                            cin.ignore();
-                            cout << "Write successfully!" << endl;
-                        } else if (v[1] == "-a") {
-                            appendWrite(openingFile);
-                            cin.ignore();
-                            cout << "Append successfully!" << endl;
-                        } else {
-                            cout << "SError: Wrong command" << endl;
-                        }
-                        cout << "Please input the next command:";
+            case 'w': {
+                // 将 choice 拆分为 vector
+                vector<string> v;
+                v = choice;
+                // 如果 v[1] 为空格或空
+                if (v.size() == 1 || v[1].empty()) {
+                    cout << "Error: The number of parameters is wrong" << endl;
+                    cout << "Please input the next command:";
+                    break;
+                }
+                if (v[0] == "write") {
+                    if (v[1] == "-r") {
+                        reWrite(openingFile);
+                        cin.ignore();
+                        cout << "Write successfully!" << endl;
+                    } else if (v[1] == "-a") {
+                        appendWrite(openingFile);
+                        cin.ignore();
+                        cout << "Append successfully!" << endl;
                     } else {
-                        cout << "?Error: Wrong command" << endl;
-                        cout << "Please input the next command:";
+                        cout << "SError: Wrong command" << endl;
                     }
-                } break;
+                    cout << "Please input the next command:";
+                } else {
+                    cout << "?Error: Wrong command" << endl;
+                    cout << "Please input the next command:";
+                }
+            }
+                break;
             case 'c':
                 if (choice[0] == "close") {
                     openingFile = -1;
@@ -1631,6 +1652,28 @@ bool os::openFileMode(string arg) {
                     cout << "Please input the next command:";
                 }
                 break;
+            case 'l':
+                // lseek
+                if (choice[0] == "lseek") {
+                    if (choice.size() != 2) {
+                        cout << "Error: The number of parameters is wrong" << endl;
+                        cout << "Please input the next command:";
+                        break;
+                    }
+                    int offset = strtol(choice[1].c_str(), nullptr, 10);
+                    if (offset < 0) {
+                        cout << "Error: The offset is out of range" << endl;
+                        cout << "Please input the next command:";
+                        break;
+                    }
+                    lseek(openingFile, offset);
+                    cin.ignore();
+                    cout << "Lseek successfully!" << endl;
+                    cout << "Please input the next command:";
+                } else {
+                    cout << "Error: Wrong command" << endl;
+                    cout << "Please input the next command:";
+                } break;
             default:
                 cout << "QError: Wrong command" << endl;
                 cout << "Please input the next command:";
@@ -1913,7 +1956,14 @@ void os::run() {
             // *4 dir 方法
         else if (message == 4) {
             // 显示文件列表
-            displayFileInfo();
+            if (argument.empty()) {
+                displayFileInfo();
+            } else {
+                // 去除首个空格
+                argument.erase(0, 1);
+                // 显示文件列表
+                displayFileInfo(argument);
+            }
             message = 0;
             argument = "";
             ready = false;  // ready 变为 false

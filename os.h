@@ -115,4 +115,8 @@ private:
     bool reWrite(int f);
 
     bool appendWrite(int f);
+
+    void displayFileInfo(string args);
+
+    bool lseek(int f, int n);
 };
