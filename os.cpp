@@ -971,7 +971,6 @@ void os::initFileSystem() {
         createFileSys();
         return;
     }
-    cout << "success" << endl;
     file >> ss;
     modifedTimes = stringToInt(ss);    // 修改次数
     // 填入用户信息
@@ -1687,7 +1686,19 @@ void os::run() {
             cin >> command;
             if (command == "help") {
                 cout << "* help: 获取帮助" << endl
-                     << "* hello: 打印 Hello World!" << endl
+                     << "* print [arg]: 打印 arg 内容" << endl
+                     << "* create: 创建文件或目录" << endl
+                     << "* dir: 显示当前目录下的文件和目录" << endl
+                     << "* cd: [arg]: 进入 arg 目录，arg: .. | 目录名 | root" << endl
+                     << "* open: [arg]: 打开 arg 文件" << endl
+                     << "* read、write、close、lseek: 对打开的文件进行读写操作，在 open 中使用" << endl
+                     << "* mkdir: 创建目录" << endl
+                     << "* rmdir: [..args]: 删除目录" << endl
+                     << "* time: 显示当前时间" << endl
+                     << "* ver: 显示系统版本" << endl
+                     << "* rename: [aim] [new]: 重命名文件或目录" << endl
+                     << "* import: [arg]: 导入文件" << endl
+                     << "* export: [arg]: 导出文件" << endl
                      << "* exit: 退出系统" << endl;
             } else if (command == "exit") {
                 cout << "Bye!" << endl;

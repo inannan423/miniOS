@@ -44,10 +44,10 @@
 | mkdir  | 创建子目录          | `mkdir test`                | ✔️   |
 | rmdir  | 删除子目录          | `rmdir test`                | ✔️   |
 | create | 创建文件           | `create test.txt`           | ✔️   |
-| open   | 打开文件           | `open test.txt`             | ❌    |
-| read   | 读取文件           | `read test.txt`             | ❌    |
-| write  | 写入文件           | `write test.txt`            | ❌    |
-| close  | 关闭文件           | `close test.txt`            | ❌    |
+| open   | 打开文件           | `open test.txt`             | ✔️   |
+| read   | 读取文件           | `read test.txt`             | ✔️   |
+| write  | 写入文件           | `write test.txt`            | ✔️   |
+| close  | 关闭文件           | `close test.txt`            | ✔️   |
 | lseek  | 移动文件指针         | `lseek test.txt 10`         | ❌    |
 | help   | 显示帮助信息         | `help`                      | ✔️   |
 | time   | 显示当前时间         | `time`                      | ✔️   |
