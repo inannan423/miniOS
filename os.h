@@ -89,4 +89,24 @@ private:
     void displayFileInfo();
 
     vector<int> openDirectory(int f);
+
+    int makeFile();
+
+    int removeDirectory(string name);
+
+    void findAllFiles(vector<int> &files, int fcb);
+
+    void showTime();
+
+    void showVersion();
+
+    int importFileFromOut(string arg);
+
+    int makeFile(string name, string content);
+
+    int exportFileToOut(string arg);
+
+    string openFile(int n);
+
+    bool rename(string arg);
 };
