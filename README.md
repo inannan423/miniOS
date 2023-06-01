@@ -48,7 +48,7 @@
 | read   | 读取文件           | `read test.txt`             | ✔️   |
 | write  | 写入文件           | `write test.txt`            | ✔️   |
 | close  | 关闭文件           | `close test.txt`            | ✔️   |
-| lseek  | 移动文件指针         | `lseek test.txt 10`         | ❌    |
+| lseek  | 移动文件指针         | `lseek test.txt 10`         | ✔️   |
 | help   | 显示帮助信息         | `help`                      | ✔️   |
 | time   | 显示当前时间         | `time`                      | ✔️   |
 | ver    | 显示版本信息         | `ver`                       | ✔️   |
