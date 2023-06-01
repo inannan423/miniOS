@@ -13,6 +13,15 @@
 #include <cstdlib>
 #include <sstream>
 
+#define RESET   "\033[0m"
+#define RED     "\033[31m"      /* Red */
+#define GREEN   "\033[32m"      /* Green */
+#define YELLOW  "\033[33m"      /* Yellow */
+#define BLUE    "\033[34m"      /* Blue */
+#define MAGENTA "\033[35m"      /* Magenta */
+#define CYAN    "\033[36m"      /* Cyan */
+#define WHITE   "\033[37m"      /* White */
+
 #define userDataAddress 1048576 // 用户数据区起始地址
 #define maxBlockCount 9216  // 最大块数
 #define maxUserCount 10 // 最大用户数
@@ -88,7 +97,7 @@ int stringToInt(const string &str) {
     return strtol(str.c_str(), nullptr, 10);
 }
 
-string getTrueFileStrings(string s){
+string getTrueFileStrings(string s) {
     string str = "";
     for (int i = 0; i < s.length(); i++) {
         if (s[i] != '%') {
@@ -115,7 +124,7 @@ void os::initTemps() {
     nowUser = -1;
 }
 
-string formatTime(int m){
+string formatTime(int m) {
     // 先转换为 string
     string str = to_string(m);
     // 如果小于 2 位，前面补 0
@@ -129,8 +138,8 @@ string formatTime(int m){
 string getCurrentTime() {
     time_t now = time(0);
     tm *ltm = localtime(&now);
-    string year = formatTime(1900+ltm->tm_year);
-    string month = formatTime(1+ltm->tm_mon);
+    string year = formatTime(1900 + ltm->tm_year);
+    string month = formatTime(1 + ltm->tm_mon);
     string day = formatTime(ltm->tm_mday);
     string hour = formatTime(ltm->tm_hour);
     string min = formatTime(ltm->tm_min);
@@ -208,6 +217,20 @@ bool os::saveFcbToFile(int f) {
     // address 4 位 补齐
     file << fillFileStrings(intToString(fcbs[f].address, 4), 4) << endl;
     file << fillFileStrings(fcbs[f].modifyTime, 12) << endl;
+    file.close();
+    return true;
+}
+
+bool saveModifyTimesToFile() {
+    fstream file;
+    string ss;
+    file.open("disk.txt", ios::out | ios::in);
+    if (!file.is_open()) {
+        cout << "Error: Can't open file!" << endl;
+        return false;
+    }
+    file.seekg(0, ios::beg);
+    file << fillFileStrings(intToString(modifedTimes, 5), 5) << endl;
     file.close();
     return true;
 }
@@ -406,6 +429,7 @@ bool os::deleteFileSystemFile(int f) {
 
 // 创建目录，参数为用户编号
 int os::makeDirectory(int u) {
+    // 表示用户是创建用户目录操作
     if (u != -1) {
         int voidFcb = getEmptyFcb();
         if (voidFcb == -1) {
@@ -460,8 +484,7 @@ int os::makeDirectory(int u) {
             deleteFileSystemFile(voidFcb);
             deleteFileSystemFile(voidFcbFile);
             return -1;
-        }
-        else {
+        } else {
             cout << "Create directory successfully!" << endl;
         }
         string info = "This is temporary README.txt.";
@@ -477,67 +500,92 @@ int os::makeDirectory(int u) {
         user[u].root = voidFcb;
         return voidFcb;
     } else {
-        cout << "!!!!" << endl;
-//        cout << "Please input the name of the directory: ";
-//        string dirName;
-//        while (cin>>dirName){
-//            if (dirName == "root"){
-//                cout << "Error: Can't create root directory!" << endl;
-//                cout << "Please input the name of the directory: ";
-//                continue;
-//            }
-//            if (dirName.size() > 20) {
-//                cout << "Error: Directory name is too long!" << endl;
-//                cout << "Please input the name of the directory: ";
-//                continue;
-//            }
-//            bool flag = false;
-//            for (int i=0;i< dirStack.size();i++){
-//                if (fcbs[dirStack[i]].name == dirName && fcbs[dirStack[i]].type == 1){
-//                    flag = true;
-//                }
-//            }
-//            if (flag){
-//                cout << "Error: Directory name is already exist!" << endl;
-//                cout << "Please input the name of the directory: ";
-//                continue;
-//            }
-//            break;
-//        }
-//
-//        int voidFcb = getEmptyFcb();
-//        if (voidFcb == -1) {
-//            cout << "Error: No space for new directory!" << endl;
-//            return -1;
-//        }
-//        fcbs[voidFcb].isused = 1;
-//        fcbs[voidFcb].isHide = 0;
-//        fcbs[voidFcb].name = dirName;
-//        fcbs[voidFcb].type = 1;
-//        fcbs[voidFcb].user = u;
-//        fcbs[voidFcb].size = 0;
-//        fcbs[voidFcb].address = getEmptyBlock();
-//        fcbs[voidFcb].modifyTime = getCurrentTime();
-//        vector
+        // 表示指令级创建目录操作
+        cout << "Please input the name of the directory: ";
+        string dirName;
+        while (cin>>dirName){
+            if (dirName == "root"){
+                cout << "Error: Can't create root directory!" << endl;
+                cout << "Please input the name of the directory: ";
+                continue;
+            }
+            if (dirName.size() > 20) {
+                cout << "Error: Directory name is too long!" << endl;
+                cout << "Please input the name of the directory: ";
+                continue;
+            }
+            bool flag = false;
+            for (int i=0;i< filesInCatalog.size();i++){
+                if (fcbs[filesInCatalog[i]].name == dirName && fcbs[filesInCatalog[i]].type == 1){
+                    flag = true;
+                }
+            }
+            if (flag){
+                cout << "Error: Directory name is already exist!" << endl;
+                cout << "Please input the name of the directory: ";
+                continue;
+            }
+            break;
+        }
+
+        int voidFcb = getEmptyFcb();
+        if (voidFcb == -1) {
+            cout << "Error: No space for new directory!" << endl;
+            return -1;
+        }
+        fcbs[voidFcb].isused = 1;
+        fcbs[voidFcb].isHide = 0;
+        fcbs[voidFcb].name = dirName;
+        fcbs[voidFcb].type = 1;
+        fcbs[voidFcb].user = nowUser;
+        fcbs[voidFcb].size = 0;
+        fcbs[voidFcb].address = getEmptyBlock();
+        fcbs[voidFcb].modifyTime = getCurrentTime();
+        vector<int> stack;
+        if (fcbs[voidFcb].address == -1) {
+            // 释放已分配的空间
+            deleteFileSystemFile(voidFcb);
+            cout << "Error: No space for new directory!" << endl;
+            return -1;
+        }
+        if (!saveFileSys(voidFcb, stack)) {
+            cout << "Error: No space for new directory!" << endl;
+            // 释放已分配的空间
+            deleteFileSystemFile(voidFcb);
+            return -1;
+        } else {
+            cout << "Create directory successfully!" << endl;
+        }
+        filesInCatalog.push_back(voidFcb);
+        for (int i=2;i<catalogStack.size();i++){
+            fcbs[catalogStack[i]].modifyTime = getCurrentTime();
+            saveFcbToFile(catalogStack[i]);
+        }
+        saveFileSys(currentCatalog, filesInCatalog);
+        saveFatBlockToFile();
+        saveBitMapToFile();
+        return voidFcb;
     }
 }
 
-void os::displayFileInfo(){
-    cout << "序号\t" << "文件名\t\t" << "类型" << "\t" << "可见性\t" <<"权限\t" << "大小\t" << "最后修改时间\t" << endl;
+
+void os::displayFileInfo() {
+    // 如果没有目录或文件，显示 "There is no file or directory."
+    if (filesInCatalog.size() == 0) {
+        cout << "There is no file or directory." << endl;
+        return;
+    }
     for (int i = 0; i < filesInCatalog.size(); i++) {
-        if (fcbs[filesInCatalog[i]].user == nowUser)
-            cout << i << "\t" << fcbs[filesInCatalog[i]].name << "\t\t"
-                 << ((fcbs[filesInCatalog[i]].type == 0) ? "file" : "dir")
-                 << "\t" << ((fcbs[filesInCatalog[i]].isHide == 0) ? "可见" : "隐藏")
-                 << "\t" << ((fcbs[filesInCatalog[i]].size == 0) ? fcbs[filesInCatalog[i]].size : -1)
-                 << "\t" << fcbs[filesInCatalog[i]].modifyTime << "\t" << endl;
+        if (fcbs[filesInCatalog[i]].user == nowUser){
+            // 显示文件信息
+            cout<<fcbs[filesInCatalog[i]].name<<(fcbs[filesInCatalog[i]].type == 1?"(dir)":"")<<"\t";
+        }
     }
     cout << endl;
 }
 
 // 从文件中读取指定 FCB 的内容
 vector<int> os::getFcbs(int fcb) {
-    cout<<"getFcbs"<<fcb<<endl;
     fstream file;
     string ss;
     file.open("disk.txt", ios::in | ios::out);
@@ -549,17 +597,17 @@ vector<int> os::getFcbs(int fcb) {
     string data = "";
     string temp;
     int fcbAddress = fcbs[fcb].address;
-    cout<<"fcbAddress"<<fcbAddress<<endl;
-    while(true){
+    while (true) {
         file.seekg(userDataAddress + fcbAddress * 1024, ios::beg);
-        if(fatBlock[fcbAddress] == 0){
+        if (fatBlock[fcbAddress] == 0) {
             break;
         }
         file >> temp;
         data += temp;
         fcbAddress = fatBlock[fcbAddress];  // 下一个数据块
+        cout<<"!!"<<endl;
     }
-    file>>temp;
+    file >> temp;
     data += temp;
     istringstream iss(data);
     string s;
@@ -586,7 +634,9 @@ void os::userRegister() {
         cout << "Error: No space for new user!" << endl;
         return;
     }
-    cout<<"* Welcome to register!You should input your username and password.The username should be less than 20 characters and only contains letters and numbers.And the password should be less than 8 characters."<<endl;
+    cout
+            << "* Welcome to register!You should input your username and password.The username should be less than 20 characters and only contains letters and numbers.And the password should be less than 8 characters."
+            << endl;
     cout << "Please input your username: ";
     string username;
     while (cin >> username) {
@@ -653,11 +703,11 @@ void os::userRegister() {
 // 实现用户登录逻辑
 void os::userLogin() {
     int u = -1;
-    cout << "Input \"--register\" to register a new user." << endl;
+    cout << "Input \"-r\" to register a new user." << endl;
     cout << "Please input your username: ";
     string username;
     cin >> username;
-    if (username == "--register") {
+    if (username == "-r") {
         userRegister();
         return;
     }
@@ -679,9 +729,8 @@ void os::userLogin() {
         dirStack.push_back(u);
         currentCatalog = user[u].root;
         catalogStack.push_back(currentCatalog);
-        cout<<"!"<<user[u].root<<endl;
-        filesInCatalog = getFcbs(user[u].root);
-        cout<<"* Welcome "<<user[u].username<<"!"<<endl;
+        filesInCatalog = openDirectory(user[u].root);
+        cout << "* Welcome " << user[u].username << "!" << endl;
         displayFileInfo();
         isLogin = true;
     } else {
@@ -927,55 +976,130 @@ void os::showFileList() {
     }
 }
 
+// 打开目录，读取目录下的文件
+vector<int> os::openDirectory(int f){
+    fstream file;
+    string ss;
+    file.open("disk.txt", ios::in|ios::out);
+    if (!file.is_open()){
+        cout << "Error: Failed to open disk" << endl;
+        vector<int> error;
+        return error;
+    }
+
+    string data = "";
+    string temp;
+    int address = fcbs[f].address;
+    while (true){
+        file.seekg(userDataAddress+address*1026, ios::beg);
+        if (fatBlock[address] == 0){
+            break;
+        }
+        file>>temp;
+        data += temp;
+        address = fatBlock[address];
+    }
+    file>>temp;
+    data += temp;
+    istringstream is(data);
+    string s;
+    vector<int> res;
+    while (getline(is, s, '%')){
+        if (s!=""){
+            res.push_back(::strtol(s.c_str(), nullptr, 10));
+        }
+    }
+    return res;
+}
+
 void os::cd(const string &filename) {
-    if (filename == "..") {
-        if (currentPath == "czh") {
-            cout << "Error: Already in root directory" << endl;
-            return;
-        }
-        currentPath = currentPath.substr(0, currentPath.length() - 1);
-        currentPath = currentPath.substr(0, currentPath.find_last_of("/") + 1);
-        return;
+    // filename 是由空格分隔的字符串，将其拆分为 vector
+    vector<string> v;
+    istringstream iss(filename);
+    while (iss) {
+        string sub;
+        iss >> sub;
+        v.push_back(sub);
     }
-    if (filename == "~") {
-        currentPath = "czh";
-        return;
-    }
-    if (filename == "") {
-        cout << "Error: No such directory" << endl;
-        return;
-    }
-    if (filename[0] == '/') {
-        if (filename == "/") {
-            currentPath = "czh";
-            return;
-        }
-        string temp = filename.substr(1, filename.length() - 1);
-        if (temp.find_first_of("/") != string::npos) {
-            cout << "Error: No such directory" << endl;
-            return;
-        }
-        for (int i = 0; i < maxBlockCount; i++) {
-            if (fcbs[i].isused == 1 && fcbs[i].isHide == 0 && fcbs[i].type == 0 && fcbs[i].name == temp) {
-                currentPath = "/" + temp + "/";
+    switch (v[0][0]){
+        case '.':
+        {
+            if (v[0]==".."){
+                if (catalogStack.size()==1){
+                    cout << "Error: No such file or directory" << endl;
+                    return;
+                } else {
+                    currentCatalog = catalogStack[catalogStack.size()-2];
+                    catalogStack.pop_back();
+                    filesInCatalog = openDirectory(currentCatalog);
+                }
+            }
+            else if (v[0]=="."){
+                // 保持当前目录不变
+            }
+            else{
+                cout << "Error: Invalid command" << endl;
                 return;
             }
-        }
-        cout << "Error: No such directory" << endl;
-        return;
+        } break;
+        default:
+        {
+            istringstream is(v[0]);
+            string key;
+            vector<string> temp;
+            while (getline(is, key, '/')){
+                if (key!=""){
+                    temp.push_back(key);
+                }
+            }
+            // 根据 temp 中的内容，找到对应的目录
+            if(temp[0]=="root"){
+                // 如果要前往的目录是 root，则清除目录栈
+                catalogStack.clear();
+                catalogStack.push_back(nowUser);    // 当前目录为当前用户的根目录
+                filesInCatalog = openDirectory(user[nowUser].root);   // 打开当前用户的根目录
+                catalogStack.push_back(user[nowUser].root);   // 将当前用户的根目录压入目录栈
+                for (int i=1;i<temp.size();i++){
+                    bool flag = false;
+                    for (int j=0;j<filesInCatalog.size();j++){
+                        if (fcbs[filesInCatalog[j]].name==temp[i] && fcbs[filesInCatalog[j]].type==1){
+                            flag = true;
+                            currentCatalog = filesInCatalog[j]; // 当前目录为找到的目录
+                            catalogStack.push_back(currentCatalog); // 将当前目录压入目录栈
+                            filesInCatalog = openDirectory(currentCatalog); // 打开当前目录
+                        }
+                    }
+                    if (!flag){
+                        cout << "Error: No such file or directory" << endl;
+                        return;
+                    }
+                }
+            } else {
+                for (int i=0;i<temp.size();i++){
+                    bool flag = false;
+                    for (int j=0;j<filesInCatalog.size();j++){
+                        if (fcbs[filesInCatalog[j]].name==temp[i] && fcbs[filesInCatalog[j]].type==1){
+                            flag = true;
+                            currentCatalog = filesInCatalog[j]; // 当前目录为找到的目录
+                            catalogStack.push_back(currentCatalog); // 将当前目录压入目录栈
+                            filesInCatalog = openDirectory(currentCatalog); // 打开当前目录
+                        }
+                    }
+                    if (!flag){
+                        cout << "Error: No such file or directory" << endl;
+                        return;
+                    }
+                }
+            }
+        }   break;
     }
-    if (filename.find_first_of("/") != string::npos) {
-        cout << "Error: No such directory" << endl;
-        return;
+    // 打印现在的 catalogStack
+    cout << "Current directory: ";
+    for (int i=0;i<catalogStack.size();i++){
+        cout << fcbs[catalogStack[i]].name << "/";
     }
-    for (int i = 0; i < maxBlockCount; i++) {
-        if (fcbs[i].isused == 1 && fcbs[i].isHide == 0 && fcbs[i].type == 1 && fcbs[i].name == filename) {
-            currentPath = currentPath + filename + "/";
-            return;
-        }
-    }
-    cout << "Error: No such directory" << endl;
-    return;
+    cout << endl;
+    cout<<"currentCatalog"<<currentCatalog<<endl;
 }
 
 // cmd 线程，用于接收用户输入
@@ -999,11 +1123,13 @@ void os::run() {
         if (nowUser == -1) {
             userLogin();
         } else {
-            if (currentPath == "czh") {
-                cout << "czh@MiniOS:/czh/:";
-            } else {
-                cout << "czh@MiniOS::/czh" << currentPath << ":";
+            // 显示前缀 [用户名@主机名 /根目录/../../当前目录]$
+            cout << "" << user[nowUser].username << "@MiniOS /root/";
+            for (int i=1;i<catalogStack.size();i++){
+                cout<<fcbs[catalogStack[i]].name<<"/";
             }
+            cout<<":$ ";
+
             cin >> command;
             if (command == "help") {
                 cout << "* help: 获取帮助" << endl
@@ -1064,6 +1190,11 @@ void os::run() {
                 string arg;
                 getline(cin, arg);
                 argument = arg;
+                // 如果携带参数，则提示不合法
+                if (argument.find_first_not_of(" ") != string::npos) {
+                    cout << "Error: Invalid argument" << endl;
+                    continue;
+                }
                 unique_lock<mutex> lock(m);
                 message = 6;
                 ready = true;
@@ -1116,6 +1247,7 @@ void os::run() {
                 argument.erase(0, 1);
                 cout << argument << endl;
             }
+            argument = "";
             message = 0;
             ready = false;  // ready 变为 false
             cv.notify_all();    // 唤醒所有线程
@@ -1142,6 +1274,7 @@ void os::run() {
                     createFile(filename, type == "dir" ? 0 : 1);
                 }
             }
+            argument = "";
             message = 0;
             ready = false;  // ready 变为 false
             cv.notify_all();    // 唤醒所有线程
@@ -1156,6 +1289,7 @@ void os::run() {
                 // 删除文件
                 deleteFile(argument);
             }
+            argument = "";
             message = 0;
             ready = false;  // ready 变为 false
             cv.notify_all();    // 唤醒所有线程
@@ -1163,9 +1297,9 @@ void os::run() {
             // *4 ls 方法
         else if (message == 4) {
             // 显示文件列表
-            showFileList();
-
+            displayFileInfo();
             message = 0;
+            argument = "";
             ready = false;  // ready 变为 false
             cv.notify_all();    // 唤醒所有线程
         } else if (message == 5) {
@@ -1177,7 +1311,18 @@ void os::run() {
                 // 切换目录
                 cd(argument);
             }
+            argument = "";
             message = 0;
+            ready = false;  // ready 变为 false
+            cv.notify_all();    // 唤醒所有线程
+        }
+        // *6 mkdir 方法
+        else if (message == 6) {
+            makeDirectory(-1);
+            saveModifyTimesToFile();
+            modifedTimes++;
+            message = 0;
+            argument = "";
             ready = false;  // ready 变为 false
             cv.notify_all();    // 唤醒所有线程
         }

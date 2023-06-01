@@ -87,4 +87,6 @@ private:
 
     // 显示文件信息
     void displayFileInfo();
+
+    vector<int> openDirectory(int f);
 };
