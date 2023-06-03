@@ -119,4 +119,8 @@ private:
     void displayFileInfo(string args);
 
     bool lseek(int f, int n);
+
+    int removeFile(string name);
+
+    int findAllFilesForRemove(vector<int> &files, int fcb);
 };

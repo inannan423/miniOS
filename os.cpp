@@ -660,6 +660,7 @@ int os::makeFile(string name, string content) {
 }
 
 void os::findAllFiles(vector<int> &files, int fcb) {
+//    cout<<"fcb: "<<fcb<<endl;
     files.push_back(fcb);
     vector<int> temp = openDirectory(fcb);
     for (int i = 0; i < temp.size(); i++) {
@@ -671,7 +672,21 @@ void os::findAllFiles(vector<int> &files, int fcb) {
     }
 }
 
-// 删除子目录
+int os::findAllFilesForRemove(vector<int> &files, int fcb) {
+    // 查找所有文件，如果有文件则返回 1 ，否则返回 0
+    files.push_back(fcb);
+    vector<int> temp = openDirectory(fcb);
+    for (int i = 0; i < temp.size(); i++) {
+        if (fcbs[temp[i]].type == 1) {
+            findAllFilesForRemove(files, temp[i]);
+        } else {
+            files.push_back(temp[i]);
+        }
+    }
+    return files.size() > 0;
+}
+
+// 删除子目录，递归删除子目录下的所有文件和子目录
 int os::removeDirectory(string name) {
     // name 是空格隔开的字符串, 例如 "dir1 dir2 dir3" ，将其转换为 vector
     vector<string> dirNames;
@@ -711,6 +726,41 @@ int os::removeDirectory(string name) {
     return 1;
 }
 
+// 删除文件
+int os::removeFile(string name) {
+    // name 是空格隔开的字符串, 例如 "dir1 dir2 dir3" ，将其转换为 vector
+    vector<string> fileNames;
+    string temp;
+    for (int i = 0; i < name.size(); i++) {
+        if (name[i] == ' ') {
+            fileNames.push_back(temp);
+            temp = "";
+        } else {
+            temp += name[i];
+        }
+    }
+    fileNames.push_back(temp);
+    int n = -1;
+    int deleteNumber;
+    for (int i = 0; i < fileNames.size(); i++) {
+        for (int j = 0; j < filesInCatalog.size(); j++) {
+            if (fcbs[filesInCatalog[j]].name == fileNames[i] && fcbs[filesInCatalog[j]].type == 0) {
+                n = filesInCatalog[j];
+                deleteNumber = j;
+                break;
+            }
+        }
+        if (n == -1) {
+            cout << "Error: File " << fileNames[i] << " is not exist!" << endl;
+            return -1;
+        }
+        deleteFileSystemFile(n);
+        cout << "Delete file " << fileNames[i] << " successfully!" << endl;
+        filesInCatalog.erase(filesInCatalog.begin() + deleteNumber);
+        saveFileSys(currentCatalog, filesInCatalog);
+    }
+    return 1;
+}
 
 void os::displayFileInfo() {
     // 如果没有目录或文件，显示 "There is no file or directory."
@@ -733,7 +783,10 @@ void os::displayFileInfo(string args) {
     if (args == "l") {
         for (int i = 0; i < filesInCatalog.size(); i++) {
             if (fcbs[filesInCatalog[i]].user == nowUser) {
-                cout << "文件名 " << fcbs[filesInCatalog[i]].name << "\t" << "文件类型 " << (fcbs[filesInCatalog[i]].type == 1 ? "目录" : "文件") << "\t" << "文件大小 " << fcbs[filesInCatalog[i]].size << "\t" << "文件修改时间 " << fcbs[filesInCatalog[i]].modifyTime << "\t" << "文件所属用户 " << fcbs[filesInCatalog[i]].user << endl;
+                cout << "文件名 " << fcbs[filesInCatalog[i]].name << "\t" << "文件类型 "
+                     << (fcbs[filesInCatalog[i]].type == 1 ? "目录" : "文件") << "\t" << "文件大小 "
+                     << fcbs[filesInCatalog[i]].size << "\t" << "文件修改时间 " << fcbs[filesInCatalog[i]].modifyTime
+                     << "\t" << "文件所属用户 " << fcbs[filesInCatalog[i]].user << endl;
             }
         }
     } else {
@@ -1339,7 +1392,9 @@ bool os::reWrite(int f) {
     if (choice == "y") {
         cout << "Please input the new content: ";
         string data;
-        cin >> data;
+        cin.ignore();
+        // 输入 data ，包含空格
+        getline(cin, data);
         if (!saveFileSys(f, data)) {
             cout << "Error: The file cannot be rewritten";
             return false;
@@ -1361,7 +1416,8 @@ bool os::appendWrite(int f) {
         string data = openFile(f);
         cout << "Please input the content you want to append: ";
         string temp;
-        cin >> temp;
+        cin.ignore();
+        getline(cin, temp);
         data += temp;
         if (!saveFileSys(f, data)) {
             cout << "Error: The file cannot be appended";
@@ -1380,7 +1436,7 @@ bool os::appendWrite(int f) {
 bool os::lseek(int f, int n) {
     string data = openFile(f);
     if (data == "") {
-        cout<<"Error: void file"<<endl;
+        cout << "Error: void file" << endl;
         return false;
     }
     cout << "Please input the position you want to move to: ";
@@ -1390,16 +1446,18 @@ bool os::lseek(int f, int n) {
         cout << "Error: The position is out of range" << endl;
         return false;
     }
-    if (pos<0){
-        cout<<"Error: The position is out of range"<<endl;
+    if (pos < 0) {
+        cout << "Error: The position is out of range" << endl;
         return false;
     }
+    cout << "The current content is: " << data << endl;
     cout << "Please input the content you want to write: ";
     string temp;
-    cin >> temp;
+    cin.ignore();
+    getline(cin, temp);
     // 将 temp 插入到 data 的 pos 位置（插入后 data 的长度会增加）
     data.insert(pos, temp);
-    cout<<"data"<<data<<endl;
+    cout << "data" << data << endl;
     if (!saveFileSys(f, data)) {
         cout << "Error: The file cannot be written";
         return false;
@@ -1617,11 +1675,11 @@ bool os::openFileMode(string arg) {
                 if (v[0] == "write") {
                     if (v[1] == "-r") {
                         reWrite(openingFile);
-                        cin.ignore();
+//                        cin.ignore();
                         cout << "Write successfully!" << endl;
                     } else if (v[1] == "-a") {
                         appendWrite(openingFile);
-                        cin.ignore();
+//                        cin.ignore();
                         cout << "Append successfully!" << endl;
                     } else {
                         cout << "SError: Wrong command" << endl;
@@ -1661,19 +1719,12 @@ bool os::openFileMode(string arg) {
                         break;
                     }
                     int offset = strtol(choice[1].c_str(), nullptr, 10);
-                    if (offset < 0) {
-                        cout << "Error: The offset is out of range" << endl;
-                        cout << "Please input the next command:";
-                        break;
-                    }
                     lseek(openingFile, offset);
-                    cin.ignore();
-                    cout << "Lseek successfully!" << endl;
-                    cout << "Please input the next command:";
                 } else {
                     cout << "Error: Wrong command" << endl;
                     cout << "Please input the next command:";
-                } break;
+                }
+                break;
             default:
                 cout << "QError: Wrong command" << endl;
                 cout << "Please input the next command:";
@@ -2007,8 +2058,9 @@ void os::run() {
             } else {
                 // 去除首个空格
                 argument.erase(0, 1);
-                // 删除文件
+                // 删除文件夹
                 removeDirectory(argument);
+                cout<<"??"<<endl;
             }
             argument = "";
             message = 0;
