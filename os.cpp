@@ -42,6 +42,8 @@ using namespace std;
 user *user;
 int nowUser = -1;    // 当前用户
 
+mutex fileMutex = mutex();  // 文件锁
+
 // 线程 1：命令行线程
 thread::id cmd;
 // 线程 2：内核线程
@@ -67,6 +69,24 @@ string currentPath = "czh";    // 当前路径
  * */
 fcb *fcbs;  // fcb
 bool isLogin = false;   // 是否登录
+
+bool os::update() {
+    fstream file;   //输出流
+    string ss;
+    file.open("disk.txt", ios::in | ios::out);   //每次写都定位的文件结尾，不会丢失原来的内容，用out则会丢失原来的内容
+    if (!file.is_open()) {
+        cout << "File open failed!" << endl;
+        return false;
+    }
+    file.seekg(0, ios::beg);//将文件指针定位到文件开头
+    file >> ss;
+    if (strtod(ss.c_str(), nullptr) == modifedTimes) {
+        return true;
+    } else {
+        return false;
+    }
+    file.close();
+}
 
 // 补齐位数存储，例如需要存为 4 位，但是只有 2 位，那么就在前面补 0
 string fillFileStrings(string str, int len) {
@@ -141,6 +161,7 @@ string getCurrentTime() {
 
 // 保存用户信息
 bool os::saveUserToFile(int u) {
+    // unique_lock<mutex> fileLock(fileMutex);
     fstream file;
     string ss;
     file.open("disk.txt", ios::out | ios::in);
@@ -159,6 +180,7 @@ bool os::saveUserToFile(int u) {
 
 // 保存 fatBlock 信息
 bool os::saveFatBlockToFile() {
+    // unique_lock<mutex> fileLock(fileMutex);
     fstream file;
     string ss;
     file.open("disk.txt", ios::out | ios::in);
@@ -176,6 +198,7 @@ bool os::saveFatBlockToFile() {
 
 // 保存 bitMap 信息
 bool os::saveBitMapToFile() {
+    // unique_lock<mutex> fileLock(fileMutex);
     fstream file;
     string ss;
     file.open("disk.txt", ios::out | ios::in);
@@ -192,6 +215,7 @@ bool os::saveBitMapToFile() {
 }
 
 bool os::saveFcbToFile(int f) {
+    // unique_lock<mutex> fileLock(fileMutex);
     fstream file;
     string ss;
     file.open("disk.txt", ios::out | ios::in);
@@ -215,6 +239,7 @@ bool os::saveFcbToFile(int f) {
 }
 
 bool saveModifyTimesToFile() {
+    // unique_lock<mutex> fileLock(fileMutex);
     fstream file;
     string ss;
     file.open("disk.txt", ios::out | ios::in);
@@ -250,6 +275,7 @@ int os::getEmptyBlock() {
 
 // 创建函数，用于保存修改过的文件系统
 bool os::saveFileSys(int f, string content) {
+    // unique_lock<mutex> fileLock(fileMutex);
     fstream file;
     string ss;
     file.open("disk.txt", ios::out | ios::in);
@@ -333,6 +359,7 @@ bool os::saveFileSys(int f, string content) {
 }
 
 bool os::saveFileSys(int f, vector<int> content) {
+    // unique_lock<mutex> fileLock(fileMutex);
     fstream file;
     string ss;
     file.open("disk.txt", ios::out | ios::in);
@@ -950,6 +977,7 @@ void os::userLogin() {
 }
 
 void os::createFileSys() {
+    // unique_lock<mutex> fileLock(fileMutex);
     thread::id id = this_thread::get_id();
     fstream file;   // 文件流
     // 文件在 cmake-build-debug/ 下
@@ -1004,6 +1032,7 @@ void os::createFileSys() {
 
 // 读出文件信息
 void os::initFileSystem() {
+    // unique_lock<mutex> fileLock(fileMutex);
     fstream file;
     string ss;
     cout << "*** Reading file system..." << endl;
