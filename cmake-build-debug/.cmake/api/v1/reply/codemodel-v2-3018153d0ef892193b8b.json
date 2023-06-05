@@ -15,9 +15,7 @@
 					"source" : ".",
 					"targetIndexes" : 
 					[
-						0,
-						1,
-						2
+						0
 					]
 				}
 			],
@@ -32,28 +30,12 @@
 					"name" : "miniOS",
 					"targetIndexes" : 
 					[
-						0,
-						1,
-						2
+						0
 					]
 				}
 			],
 			"targets" : 
 			[
-				{
-					"directoryIndex" : 0,
-					"id" : "backEnd::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-backEnd-Debug-eebc4bdef8c60d6b7789.json",
-					"name" : "backEnd",
-					"projectIndex" : 0
-				},
-				{
-					"directoryIndex" : 0,
-					"id" : "frontEnd::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-frontEnd-Debug-84be0d85d3799b8b5ea1.json",
-					"name" : "frontEnd",
-					"projectIndex" : 0
-				},
 				{
 					"directoryIndex" : 0,
 					"id" : "miniOS::@6890427a1f51a3e7e1df",

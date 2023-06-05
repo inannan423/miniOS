@@ -37,24 +37,27 @@
 
 ## 命令
 
-| 命令     | 说明             | 示例                          | 完成情况 |
-|--------|----------------|-----------------------------|------|
-| cd     | 改变当前目录         | `cd ..`                     | ✔️   |
-| dir    | 显示当前目录下的文件和子目录 | `dir`                       | ✔️   |
-| mkdir  | 创建子目录          | `mkdir test`                | ✔️   |
-| rmdir  | 删除子目录          | `rmdir test`                | ✔️   |
-| create | 创建文件           | `create test.txt`           | ✔️   |
-| open   | 打开文件           | `open test.txt`             | ✔️   |
-| read   | 读取文件           | `read test.txt`             | ✔️   |
-| write  | 写入文件           | `write test.txt`            | ✔️   |
-| close  | 关闭文件           | `close test.txt`            | ✔️   |
-| lseek  | 移动文件指针         | `lseek test.txt 10`         | ✔️   |
-| help   | 显示帮助信息         | `help`                      | ✔️   |
-| time   | 显示当前时间         | `time`                      | ✔️   |
-| ver    | 显示版本信息         | `ver`                       | ✔️   |
-| rename | 重命名文件          | `rename test.txt test2.txt` | ✔️   |
-| import | 导入文件           | `import c:\test.txt .`      | ✔️   |
-| export | 导出文件           | `export test.txt c:\`       | ✔️   |
-| exit   | 退出程序           | `exit`                      | ✔️   |
+| 命令     | 说明             | 完成情况 |
+|--------|----------------|------|
+| cd     | 改变当前目录         | ✔️   |
+| dir    | 显示当前目录下的文件和子目录 | ✔️   |
+| mkdir  | 创建子目录          | ✔️   |
+| rmdir  | 删除子目录          | ✔️   |
+| create | 创建文件           | ✔️   |
+| open   | 打开文件           | ✔️   |
+| read   | 读取文件           | ✔️   |
+| write  | 写入文件           | ✔️   |
+| close  | 关闭文件           | ✔️   |
+| lseek  | 移动文件指针         | ✔️   |
+| help   | 显示帮助信息         | ✔️   |
+| time   | 显示当前时间         | ✔️   |
+| ver    | 显示版本信息         | ✔️   |
+| rename | 重命名文件          | ✔️   |
+| import | 导入文件           | ✔️   |
+| export | 导出文件           | ✔️   |
+| exit   | 退出程序           | ✔️   |
 
 - lseek 用于移动文件指针，第二个参数为偏移量，第三个参数为移动方式，0为从文件开头，1为从当前位置，2为从文件末尾。
+
+## 实现
+

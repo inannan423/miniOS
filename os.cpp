@@ -26,7 +26,7 @@
 
 // 存储目录结构
 vector<int> dirStack;
-vector<int> catalogStack;   //way
+vector<int> catalogStack;   // 用于存储目录的栈
 int currentCatalog = 0; // 当前目录的 FCB 号
 vector<int> filesInCatalog; // 当前目录下的文件
 
@@ -297,7 +297,8 @@ void os::updateData(){
         return;
     }
     file>>ss;
-    modifedTimes = stringToInt(ss);
+    modifedTimes = stringToInt(ss);    // 修改次数
+    // 填入用户信息
     for (int i = 0; i < 10; i++) {
         file >> ss;
         user[i].isused = stringToInt(ss);
@@ -308,14 +309,17 @@ void os::updateData(){
         file >> ss;
         user[i].root = stringToInt(ss);
     }
+    // 填入 fat block 信息
     for (int i = 0; i < maxBlockCount; i++) {
         file >> ss;
-        fatBlock[i] = stringToInt(ss);
+        fatBlock[i] = strtol(ss.c_str(), nullptr, 10);  // 三个参数分别为：字符串，指针，进制，意思是将字符串转换为 10 进制的整数
     }
+    // 填入 bit map 信息
     for (int i = 0; i < maxBlockCount; i++) {
         file >> ss;
         bitMap[i] = stringToInt(ss);
     }
+    // 填入 fcb 信息
     for (int i = 0; i < maxBlockCount; i++) {
         file >> ss;
         fcbs[i].isused = stringToInt(ss);
@@ -336,7 +340,7 @@ void os::updateData(){
     }
     file.close();
     // 获取当前目录下的文件 fcb
-    filesInCatalog=getFcbs(currentCatalog);
+    filesInCatalog=openDirectory(currentCatalog);
     // 解锁
     fileLock.unlock();
 }
@@ -620,7 +624,7 @@ int os::makeDirectory(int u) {
             break;
         }
 
-        int voidFcb = getEmptyFcb();
+        int voidFcb = getEmptyFcb();    // 获取空的目录项
         if (voidFcb == -1) {
             cout << "Error: No space for new directory!" << endl;
             return -1;
@@ -1561,6 +1565,11 @@ bool os::lseek(int f, int n) {
     cout << "Please input the position you want to move to: ";
     int pos;
     cin >> pos;
+    // 如果 pos 不是数字, 则返回 false
+    if (isdigit(pos)) {
+        cout << "The position is not a number" << endl;
+        return false;
+    }
     if (pos > data.size()) {
         cout << "Error: The position is out of range" << endl;
         return false;
@@ -1576,7 +1585,7 @@ bool os::lseek(int f, int n) {
     getline(cin, temp);
     // 将 temp 插入到 data 的 pos 位置（插入后 data 的长度会增加）
     data.insert(pos, temp);
-    cout << "data" << data << endl;
+    cout << "data:" << data << endl;
     if (!saveFileSys(f, data)) {
         cout << "Error: The file cannot be written";
         return false;
@@ -1879,7 +1888,6 @@ void os::run() {
                  "  ╚█████╔╝███████╗   ██║   ╚██████╔╝███████║\n"
                  "   ╚════╝ ╚══════╝   ╚═╝    ╚═════╝ ╚══════╝\n"
                  "                                            " << std::endl;
-    cout << "* Type 'help' to get help." << endl << endl;
 
     string command;
     while (true) {
@@ -1900,8 +1908,8 @@ void os::run() {
             if (command == "help") {
                 cout << "* help: 获取帮助" << endl
                      << "* print [arg]: 打印 arg 内容" << endl
-                     << "* create: 创建文件或目录" << endl
-                     << "* dir: 显示当前目录下的文件和目录" << endl
+                     << "* create: 创建文件" << endl
+                     << "* dir [arg]: 显示当前目录下的文件和目录，arg: 空 | -l | *.[后缀]，分别表示默认、详细、后缀" << endl
                      << "* cd: [arg]: 进入 arg 目录，arg: .. | 目录名 | root" << endl
                      << "* open: [arg]: 打开 arg 文件" << endl
                      << "* read、write、close、lseek: 对打开的文件进行读写操作，在 open 中使用" << endl
@@ -1912,6 +1920,7 @@ void os::run() {
                      << "* rename: [aim] [new]: 重命名文件或目录" << endl
                      << "* import: [arg]: 导入文件" << endl
                      << "* export: [arg]: 导出文件" << endl
+                     << "* rmfile：[..args]: 删除文件" << endl
                      << "* exit: 退出系统" << endl;
             } else if (command == "exit") {
                 cout << "Bye!" << endl;
@@ -2069,7 +2078,19 @@ void os::run() {
                 ready = true;
                 cv.notify_all();
                 cv.wait(lock, [this] { return !ready; });
-            } else {
+            }
+            // remove file
+            else if (command == "rmfile"){
+                string arg;
+                getline(cin, arg);
+                argument = arg;
+                unique_lock<mutex> lock(m);
+                message = 16;
+                ready = true;
+                cv.notify_all();
+                cv.wait(lock, [this] { return !ready; });
+            }
+            else {
                 cout << command << ": command not found" << endl;
             }
         }
@@ -2086,11 +2107,7 @@ void os::run() {
         unique_lock<mutex> lock(m); // 加锁，防止多个线程同时访问
         cv.wait(lock, [this] { return ready; });    // 等待 ready 变为 true
         if (update()) {		//判断有无更新，根据修改次数来进行判断
-            cout << "File system has been modified, updated successfully!" << endl;
             updateData();	//读取新的信息，并存储在数据中
-            for (int i = 1; i < catalogStack.size(); i++) {
-                cout << getTrueFileStrings(fcbs[catalogStack[i]].name) << "\>";
-            }
         }
         // *1 print 方法
         if (message == 1) {
@@ -2187,7 +2204,7 @@ void os::run() {
                 argument.erase(0, 1);
                 // 删除文件夹
                 removeDirectory(argument);
-                cout<<"??"<<endl;
+//                cout<<"??"<<endl;
             }
             argument = "";
             message = 0;
@@ -2265,6 +2282,22 @@ void os::run() {
                 argument.erase(0, 1);
                 // 打开文件
                 openFileMode(argument);
+            }
+            argument = "";
+            message = 0;
+            ready = false;  // ready 变为 false
+            cv.notify_all();    // 唤醒
+        }
+        // *rmfile
+        else if (message == 16) {
+            if (argument.empty()) {
+                cout << "argument is empty!" << endl;
+            } else {
+                // 去除首个空格
+                argument.erase(0, 1);
+//                cout<<"argument:"<<argument<<endl;
+                // 删除文件
+                removeFile(argument);
             }
             argument = "";
             message = 0;
