@@ -86,74 +86,6 @@ build miniOS.exe: CXX_EXECUTABLE_LINKER__miniOS_Release CMakeFiles/miniOS.dir/ma
   TARGET_IMPLIB = libminiOS.dll.a
   TARGET_PDB = miniOS.exe.dbg
 
-# =============================================================================
-# Object build statements for EXECUTABLE target backEnd
-
-
-#############################################
-# Order-only phony target for backEnd
-
-build cmake_object_order_depends_target_backEnd: phony || CMakeFiles/backEnd.dir
-
-build CMakeFiles/backEnd.dir/backEnd.cpp.obj: CXX_COMPILER__backEnd_Release E$:/Desktop/2023/OS/design/miniOS/backEnd.cpp || cmake_object_order_depends_target_backEnd
-  DEP_FILE = CMakeFiles\backEnd.dir\backEnd.cpp.obj.d
-  FLAGS = -O3 -DNDEBUG -fdiagnostics-color=always
-  OBJECT_DIR = CMakeFiles\backEnd.dir
-  OBJECT_FILE_DIR = CMakeFiles\backEnd.dir
-
-
-# =============================================================================
-# Link build statements for EXECUTABLE target backEnd
-
-
-#############################################
-# Link the executable backEnd.exe
-
-build backEnd.exe: CXX_EXECUTABLE_LINKER__backEnd_Release CMakeFiles/backEnd.dir/backEnd.cpp.obj
-  FLAGS = -O3 -DNDEBUG
-  LINK_FLAGS = -static
-  LINK_LIBRARIES = -lws2_32  -lwsock32  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
-  OBJECT_DIR = CMakeFiles\backEnd.dir
-  POST_BUILD = cd .
-  PRE_LINK = cd .
-  TARGET_FILE = backEnd.exe
-  TARGET_IMPLIB = libbackEnd.dll.a
-  TARGET_PDB = backEnd.exe.dbg
-
-# =============================================================================
-# Object build statements for EXECUTABLE target frontEnd
-
-
-#############################################
-# Order-only phony target for frontEnd
-
-build cmake_object_order_depends_target_frontEnd: phony || CMakeFiles/frontEnd.dir
-
-build CMakeFiles/frontEnd.dir/frontEnd.cpp.obj: CXX_COMPILER__frontEnd_Release E$:/Desktop/2023/OS/design/miniOS/frontEnd.cpp || cmake_object_order_depends_target_frontEnd
-  DEP_FILE = CMakeFiles\frontEnd.dir\frontEnd.cpp.obj.d
-  FLAGS = -O3 -DNDEBUG -fdiagnostics-color=always
-  OBJECT_DIR = CMakeFiles\frontEnd.dir
-  OBJECT_FILE_DIR = CMakeFiles\frontEnd.dir
-
-
-# =============================================================================
-# Link build statements for EXECUTABLE target frontEnd
-
-
-#############################################
-# Link the executable frontEnd.exe
-
-build frontEnd.exe: CXX_EXECUTABLE_LINKER__frontEnd_Release CMakeFiles/frontEnd.dir/frontEnd.cpp.obj
-  FLAGS = -O3 -DNDEBUG
-  LINK_FLAGS = -static
-  LINK_LIBRARIES = -lws2_32  -lwsock32  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
-  OBJECT_DIR = CMakeFiles\frontEnd.dir
-  POST_BUILD = cd .
-  PRE_LINK = cd .
-  TARGET_FILE = frontEnd.exe
-  TARGET_IMPLIB = libfrontEnd.dll.a
-  TARGET_PDB = frontEnd.exe.dbg
-
 
 #############################################
 # Utility command for edit_cache
@@ -180,10 +112,6 @@ build rebuild_cache: phony CMakeFiles/rebuild_cache.util
 # =============================================================================
 # Target aliases.
 
-build backEnd: phony backEnd.exe
-
-build frontEnd: phony frontEnd.exe
-
 build miniOS: phony miniOS.exe
 
 # =============================================================================
@@ -194,7 +122,7 @@ build miniOS: phony miniOS.exe
 #############################################
 # Folder: E:/Desktop/2023/OS/design/miniOS/cmake-build-release
 
-build all: phony miniOS.exe backEnd.exe frontEnd.exe
+build all: phony miniOS.exe
 
 # =============================================================================
 # Built-in targets

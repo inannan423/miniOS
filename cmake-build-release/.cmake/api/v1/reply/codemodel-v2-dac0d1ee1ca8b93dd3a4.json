@@ -6,7 +6,7 @@
 			[
 				{
 					"build" : ".",
-					"jsonFile" : "directory-.-Debug-d0094a50bb2071803777.json",
+					"jsonFile" : "directory-.-Release-d0094a50bb2071803777.json",
 					"minimumCMakeVersion" : 
 					{
 						"string" : "3.25"
@@ -15,13 +15,11 @@
 					"source" : ".",
 					"targetIndexes" : 
 					[
-						0,
-						1,
-						2
+						0
 					]
 				}
 			],
-			"name" : "Debug",
+			"name" : "Release",
 			"projects" : 
 			[
 				{
@@ -32,9 +30,7 @@
 					"name" : "miniOS",
 					"targetIndexes" : 
 					[
-						0,
-						1,
-						2
+						0
 					]
 				}
 			],
@@ -42,22 +38,8 @@
 			[
 				{
 					"directoryIndex" : 0,
-					"id" : "backEnd::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-backEnd-Debug-97407e451b9cdcce54b3.json",
-					"name" : "backEnd",
-					"projectIndex" : 0
-				},
-				{
-					"directoryIndex" : 0,
-					"id" : "frontEnd::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-frontEnd-Debug-5562526d89a3f4bc583a.json",
-					"name" : "frontEnd",
-					"projectIndex" : 0
-				},
-				{
-					"directoryIndex" : 0,
 					"id" : "miniOS::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-miniOS-Debug-1f937ca461a1228d0efa.json",
+					"jsonFile" : "target-miniOS-Release-c0e2dec1bb35e644ec4e.json",
 					"name" : "miniOS",
 					"projectIndex" : 0
 				}
@@ -67,7 +49,7 @@
 	"kind" : "codemodel",
 	"paths" : 
 	{
-		"build" : "E:/Desktop/2023/OS/design/miniOS/cmake-build-debug",
+		"build" : "E:/Desktop/2023/OS/design/miniOS/cmake-build-release",
 		"source" : "E:/Desktop/2023/OS/design/miniOS"
 	},
 	"version" : 

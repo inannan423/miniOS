@@ -42,7 +42,8 @@ using namespace std;
 user *user;
 int nowUser = -1;    // 当前用户
 
-mutex fileMutex = mutex();  // 文件锁
+mutex fileMutex;
+mutex m;
 
 // 线程 1：命令行线程
 thread::id cmd;
@@ -71,6 +72,8 @@ fcb *fcbs;  // fcb
 bool isLogin = false;   // 是否登录
 
 bool os::update() {
+    // 锁
+    unique_lock<mutex> fileLock(fileMutex);
     fstream file;   //输出流
     string ss;
     file.open("disk.txt", ios::in | ios::out);   //每次写都定位的文件结尾，不会丢失原来的内容，用out则会丢失原来的内容
@@ -86,6 +89,8 @@ bool os::update() {
         return false;
     }
     file.close();
+    // 解锁
+    fileLock.unlock();
 }
 
 // 补齐位数存储，例如需要存为 4 位，但是只有 2 位，那么就在前面补 0
@@ -161,7 +166,7 @@ string getCurrentTime() {
 
 // 保存用户信息
 bool os::saveUserToFile(int u) {
-    // unique_lock<mutex> fileLock(fileMutex);
+    unique_lock<mutex> fileLock(fileMutex);
     fstream file;
     string ss;
     file.open("disk.txt", ios::out | ios::in);
@@ -175,12 +180,13 @@ bool os::saveUserToFile(int u) {
     file << fillFileStrings(user[u].password, 8) << endl;
     file << fillFileStrings(intToString(user[u].root, 4), 4) << endl;
     file.close();
+    cout << "Save user success!" << endl;
     return true;
 }
 
 // 保存 fatBlock 信息
 bool os::saveFatBlockToFile() {
-    // unique_lock<mutex> fileLock(fileMutex);
+    unique_lock<mutex> fileLock(fileMutex);
     fstream file;
     string ss;
     file.open("disk.txt", ios::out | ios::in);
@@ -193,12 +199,14 @@ bool os::saveFatBlockToFile() {
         file << intToString(fatBlock[i], 4) << endl;
     }
     file.close();
+    // 解锁
+    fileLock.unlock();
     return true;
 }
 
 // 保存 bitMap 信息
 bool os::saveBitMapToFile() {
-    // unique_lock<mutex> fileLock(fileMutex);
+    unique_lock<mutex> fileLock(fileMutex);
     fstream file;
     string ss;
     file.open("disk.txt", ios::out | ios::in);
@@ -211,11 +219,13 @@ bool os::saveBitMapToFile() {
         file << bitMap[i] << endl;
     }
     file.close();
+    // 解锁
+    fileLock.unlock();
     return true;
 }
 
 bool os::saveFcbToFile(int f) {
-    // unique_lock<mutex> fileLock(fileMutex);
+    unique_lock<mutex> fileLock(fileMutex);
     fstream file;
     string ss;
     file.open("disk.txt", ios::out | ios::in);
@@ -235,11 +245,13 @@ bool os::saveFcbToFile(int f) {
     file << fillFileStrings(intToString(fcbs[f].address, 4), 4) << endl;
     file << fillFileStrings(fcbs[f].modifyTime, 12) << endl;
     file.close();
+    // 解锁
+    fileLock.unlock();
     return true;
 }
 
 bool saveModifyTimesToFile() {
-    // unique_lock<mutex> fileLock(fileMutex);
+    unique_lock<mutex> fileLock(fileMutex);
     fstream file;
     string ss;
     file.open("disk.txt", ios::out | ios::in);
@@ -250,6 +262,8 @@ bool saveModifyTimesToFile() {
     file.seekg(0, ios::beg);
     file << fillFileStrings(intToString(modifedTimes, 5), 5) << endl;
     file.close();
+    // 解锁
+    fileLock.unlock();
     return true;
 }
 
@@ -273,9 +287,63 @@ int os::getEmptyBlock() {
     return -1;
 }
 
+void os::updateData(){
+    unique_lock<mutex> fileLock(fileMutex);
+    fstream file;
+    string ss;
+    file.open("disk.txt", ios::out | ios::in);
+    if (!file.is_open()) {
+        cout << "Error: Can't open file!" << endl;
+        return;
+    }
+    file>>ss;
+    modifedTimes = stringToInt(ss);
+    for (int i = 0; i < 10; i++) {
+        file >> ss;
+        user[i].isused = stringToInt(ss);
+        file >> ss;
+        user[i].username = getTrueFileStrings(ss);
+        file >> ss;
+        user[i].password = getTrueFileStrings(ss);
+        file >> ss;
+        user[i].root = stringToInt(ss);
+    }
+    for (int i = 0; i < maxBlockCount; i++) {
+        file >> ss;
+        fatBlock[i] = stringToInt(ss);
+    }
+    for (int i = 0; i < maxBlockCount; i++) {
+        file >> ss;
+        bitMap[i] = stringToInt(ss);
+    }
+    for (int i = 0; i < maxBlockCount; i++) {
+        file >> ss;
+        fcbs[i].isused = stringToInt(ss);
+        file >> ss;
+        fcbs[i].isHide = stringToInt(ss);
+        file >> ss;
+        fcbs[i].name = getTrueFileStrings(ss);
+        file >> ss;
+        fcbs[i].type = stringToInt(ss);
+        file >> ss;
+        fcbs[i].user = stringToInt(ss);
+        file >> ss;
+        fcbs[i].size = stringToInt(ss);
+        file >> ss;
+        fcbs[i].address = stringToInt(ss);
+        file >> ss;
+        fcbs[i].modifyTime = getTrueFileStrings(ss);
+    }
+    file.close();
+    // 获取当前目录下的文件 fcb
+    filesInCatalog=getFcbs(currentCatalog);
+    // 解锁
+    fileLock.unlock();
+}
+
 // 创建函数，用于保存修改过的文件系统
 bool os::saveFileSys(int f, string content) {
-    // unique_lock<mutex> fileLock(fileMutex);
+    unique_lock<mutex> fileLock(fileMutex);
     fstream file;
     string ss;
     file.open("disk.txt", ios::out | ios::in);
@@ -353,13 +421,15 @@ bool os::saveFileSys(int f, string content) {
     }
     file << endl;
     file.close();
+    // 解锁
+    fileLock.unlock();
     saveFatBlockToFile();
     saveBitMapToFile();
     return true;
 }
 
 bool os::saveFileSys(int f, vector<int> content) {
-    // unique_lock<mutex> fileLock(fileMutex);
+    unique_lock<mutex> fileLock(fileMutex);
     fstream file;
     string ss;
     file.open("disk.txt", ios::out | ios::in);
@@ -369,7 +439,6 @@ bool os::saveFileSys(int f, vector<int> content) {
     }
     // 定位到 fcbs 开始的位置
     file.seekg(modifedTimesLength + userLength + fatLength + bitMapLength + 63 * f, ios::beg);
-
 
     file << fcbs[f].isused << endl;
     file << fcbs[f].isHide << endl;
@@ -381,8 +450,6 @@ bool os::saveFileSys(int f, vector<int> content) {
     // address 4 位 补齐
     file << fillFileStrings(intToString(fcbs[f].address, 4), 4) << endl;
     file << fillFileStrings(fcbs[f].modifyTime, 12) << endl;
-
-
 
     // 定位到用户数据块
     file.seekg(userDataAddress + fcbs[f].address * 1026, ios::beg);  // 1024 + 2（换行符）
@@ -416,8 +483,11 @@ bool os::saveFileSys(int f, vector<int> content) {
     }
     file << endl;
     file.close();
+    // 解锁
+    fileLock.unlock();
     saveFatBlockToFile();
     saveBitMapToFile();
+
     return true;
 }
 
@@ -451,6 +521,7 @@ bool os::deleteFileSystemFile(int f) {
 int os::makeDirectory(int u) {
     // 表示用户是创建用户目录操作
     if (u != -1) {
+
         int voidFcb = getEmptyFcb();
         if (voidFcb == -1) {
             cout << "Error: Can't create directory!" << endl;
@@ -508,6 +579,7 @@ int os::makeDirectory(int u) {
             cout << "Create directory successfully!" << endl;
         }
         string info = "This is temporary README.txt.";
+
         if (!saveFileSys(voidFcbFile, info)) {
             cout << "Error: Can't create directory!" << endl;
             // 释放已分配的空间
@@ -807,6 +879,8 @@ void os::displayFileInfo() {
 void os::displayFileInfo(string args) {
     // 实现 /** 参数,可以看到 ** 目录下的所有文件，如果没有这个目录，显示 "There is no file or directory."（绝对路径）
     // 实现 /l 参数,可以看到文件的详细信息，包括文件名、文件类型、文件大小、文件创建时间、文件修改时间、文件所属用户
+    // 实现 *.[后缀名] 参数,可以看到所有以当前目录下所有以 [后缀名] 结尾的文件
+    
     if (args == "l") {
         for (int i = 0; i < filesInCatalog.size(); i++) {
             if (fcbs[filesInCatalog[i]].user == nowUser) {
@@ -816,6 +890,18 @@ void os::displayFileInfo(string args) {
                      << "\t" << "文件所属用户 " << fcbs[filesInCatalog[i]].user << endl;
             }
         }
+    } else if (args[0] == '*') {
+        string suffix = args.substr(1, args.size() - 1);
+        for (int i = 0; i < filesInCatalog.size(); i++) {
+            if (fcbs[filesInCatalog[i]].user == nowUser) {
+                if (fcbs[filesInCatalog[i]].name.size() >= suffix.size() &&
+                    fcbs[filesInCatalog[i]].name.substr(fcbs[filesInCatalog[i]].name.size() - suffix.size(),
+                                                        suffix.size()) == suffix) {
+                    cout << fcbs[filesInCatalog[i]].name << (fcbs[filesInCatalog[i]].type == 1 ? "(dir)" : "") << "\t";
+                }
+            }
+        }
+        cout << endl;
     } else {
         displayFileInfo();
     }
@@ -977,7 +1063,7 @@ void os::userLogin() {
 }
 
 void os::createFileSys() {
-    // unique_lock<mutex> fileLock(fileMutex);
+    unique_lock<mutex> fileLock(fileMutex);
     thread::id id = this_thread::get_id();
     fstream file;   // 文件流
     // 文件在 cmake-build-debug/ 下
@@ -1028,11 +1114,13 @@ void os::createFileSys() {
         file << endl;
     }
     file.close();
+    // 解锁
+    fileLock.unlock();
 }
 
 // 读出文件信息
 void os::initFileSystem() {
-    // unique_lock<mutex> fileLock(fileMutex);
+    unique_lock<mutex> fileLock(fileMutex);
     fstream file;
     string ss;
     cout << "*** Reading file system..." << endl;
@@ -1085,6 +1173,8 @@ void os::initFileSystem() {
         fcbs[i].modifyTime = getTrueFileStrings(ss);
     }
     file.close();
+    // 解锁
+    fileLock.unlock();
 }
 
 // 条件变量，kernel 线程和 run 线程共享
@@ -1987,6 +2077,7 @@ void os::run() {
 }
 
 
+
 // kernel，内核处理程序
 [[noreturn]] void os::kernel() {
     kernels = this_thread::get_id();
@@ -1994,6 +2085,13 @@ void os::run() {
     while (true) {
         unique_lock<mutex> lock(m); // 加锁，防止多个线程同时访问
         cv.wait(lock, [this] { return ready; });    // 等待 ready 变为 true
+        if (update()) {		//判断有无更新，根据修改次数来进行判断
+            cout << "File system has been modified, updated successfully!" << endl;
+            updateData();	//读取新的信息，并存储在数据中
+            for (int i = 1; i < catalogStack.size(); i++) {
+                cout << getTrueFileStrings(fcbs[catalogStack[i]].name) << "\>";
+            }
+        }
         // *1 print 方法
         if (message == 1) {
             if (argument.empty()) {
@@ -2156,6 +2254,7 @@ void os::run() {
             message = 0;
             ready = false;  // ready 变为 false
             cv.notify_all();    // 唤醒所有线程
+
         }
             // *open 打开
         else if (message == 15) {

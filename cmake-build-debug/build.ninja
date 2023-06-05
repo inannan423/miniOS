@@ -78,7 +78,7 @@ build CMakeFiles/miniOS.dir/fcb.cpp.obj: CXX_COMPILER__miniOS_Debug E$:/Desktop/
 build miniOS.exe: CXX_EXECUTABLE_LINKER__miniOS_Debug CMakeFiles/miniOS.dir/main.cpp.obj CMakeFiles/miniOS.dir/os.cpp.obj CMakeFiles/miniOS.dir/fcb.cpp.obj
   FLAGS = -g
   LINK_FLAGS = -static
-  LINK_LIBRARIES = -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
+  LINK_LIBRARIES = -lws2_32  -lwsock32  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\miniOS.dir
   POST_BUILD = cd .
   PRE_LINK = cd .
@@ -112,7 +112,7 @@ build CMakeFiles/backEnd.dir/backEnd.cpp.obj: CXX_COMPILER__backEnd_Debug E$:/De
 build backEnd.exe: CXX_EXECUTABLE_LINKER__backEnd_Debug CMakeFiles/backEnd.dir/backEnd.cpp.obj
   FLAGS = -g
   LINK_FLAGS = -static
-  LINK_LIBRARIES = -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
+  LINK_LIBRARIES = -lws2_32  -lwsock32  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\backEnd.dir
   POST_BUILD = cd .
   PRE_LINK = cd .
@@ -146,7 +146,7 @@ build CMakeFiles/frontEnd.dir/frontEnd.cpp.obj: CXX_COMPILER__frontEnd_Debug E$:
 build frontEnd.exe: CXX_EXECUTABLE_LINKER__frontEnd_Debug CMakeFiles/frontEnd.dir/frontEnd.cpp.obj
   FLAGS = -g
   LINK_FLAGS = -static
-  LINK_LIBRARIES = -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
+  LINK_LIBRARIES = -lws2_32  -lwsock32  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\frontEnd.dir
   POST_BUILD = cd .
   PRE_LINK = cd .

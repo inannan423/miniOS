@@ -25,7 +25,6 @@ public:
     static void initTemps();
 
 private:
-    mutex m;
     condition_variable cv;
     bool ready;
 
@@ -123,4 +122,8 @@ private:
     int removeFile(string name);
 
     int findAllFilesForRemove(vector<int> &files, int fcb);
+
+    bool update();
+
+    void updateData();
 };
