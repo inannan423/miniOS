@@ -823,6 +823,7 @@ int os::removeDirectory(string name) {
             deleteFileSystemFile(stack[j]);
         }
         cout << "Delete directory " << dirNames[i] << " successfully!" << endl;
+        // 释放已分配的空间，erase() 函数返回的是删除元素后的迭代器
         filesInCatalog.erase(filesInCatalog.begin() + deleteNumber);
         saveFileSys(currentCatalog, filesInCatalog);
     }
@@ -859,6 +860,7 @@ int os::removeFile(string name) {
         }
         deleteFileSystemFile(n);
         cout << "Delete file " << fileNames[i] << " successfully!" << endl;
+        // filesInCatalog.begin() + deleteNumber 表示删除第 deleteNumber 个元素
         filesInCatalog.erase(filesInCatalog.begin() + deleteNumber);
         saveFileSys(currentCatalog, filesInCatalog);
     }
@@ -884,11 +886,21 @@ void os::displayFileInfo(string args) {
     // 实现 /** 参数,可以看到 ** 目录下的所有文件，如果没有这个目录，显示 "There is no file or directory."（绝对路径）
     // 实现 /l 参数,可以看到文件的详细信息，包括文件名、文件类型、文件大小、文件创建时间、文件修改时间、文件所属用户
     // 实现 *.[后缀名] 参数,可以看到所有以当前目录下所有以 [后缀名] 结尾的文件
-    
+
+//    // 打印 filesInCatalog 中的内容
+//    for (int i = 0; i < filesInCatalog.size(); i++) {
+//        cout<<filesInCatalog[i]<<"  ";
+//    }
+//    cout<<endl;
+//    // 打印 catalogStack 中的内容
+//    for (int i = 0; i < catalogStack.size(); i++) {
+//        cout<<catalogStack[i]<<"  ";
+//    }
+
     if (args == "l") {
         for (int i = 0; i < filesInCatalog.size(); i++) {
             if (fcbs[filesInCatalog[i]].user == nowUser) {
-                cout << "文件名 " << fcbs[filesInCatalog[i]].name << "\t" << "文件类型 "
+                cout << "文件 FCB 号" << filesInCatalog[i] << "\t" << "文件名 " << fcbs[filesInCatalog[i]].name << "\t" << "文件类型 "
                      << (fcbs[filesInCatalog[i]].type == 1 ? "目录" : "文件") << "\t" << "文件大小 "
                      << fcbs[filesInCatalog[i]].size << "\t" << "文件修改时间 " << fcbs[filesInCatalog[i]].modifyTime
                      << "\t" << "文件所属用户 " << fcbs[filesInCatalog[i]].user << endl;
@@ -1067,7 +1079,7 @@ void os::userLogin() {
 }
 
 void os::createFileSys() {
-    unique_lock<mutex> fileLock(fileMutex);
+//    unique_lock<mutex> fileLock(fileMutex);
     thread::id id = this_thread::get_id();
     fstream file;   // 文件流
     // 文件在 cmake-build-debug/ 下
@@ -1119,7 +1131,7 @@ void os::createFileSys() {
     }
     file.close();
     // 解锁
-    fileLock.unlock();
+//    fileLock.unlock();
 }
 
 // 读出文件信息
@@ -1322,11 +1334,14 @@ vector<int> os::openDirectory(int f) {
     string data = "";
     string temp;
     int address = fcbs[f].address;
+//    cout<<"nowAddress"<<address<<endl;
     while (true) {
         file.seekg(userDataAddress + address * 1026, ios::beg);
+        // 如果是这个块没有数据了，就退出
         if (fatBlock[address] == 0) {
             break;
         }
+        // 有的话就接着读
         file >> temp;
         data += temp;
         address = fatBlock[address];
@@ -1409,7 +1424,7 @@ void os::cd(const string &filename) {
                     for (int j = 0; j < filesInCatalog.size(); j++) {
                         if (fcbs[filesInCatalog[j]].name == temp[i] && fcbs[filesInCatalog[j]].type == 1) {
                             flag = true;
-                            currentCatalog = filesInCatalog[j]; // 当前目录为找到的目录
+                            currentCatalog = filesInCatalog[j]; // 当前目录替换为找到的目录
                             catalogStack.push_back(currentCatalog); // 将当前目录压入目录栈
                             filesInCatalog = openDirectory(currentCatalog); // 打开当前目录
                         }
@@ -1603,11 +1618,11 @@ int os::importFileFromOut(string arg) {
         v.push_back(sub);
     }
     string name;
-    cout << "Please input the name of the file you want to import: ";
+    cout << "Please input the new new for the file in your system: ";
     while (cin >> name) {
         if (name.size() > 20) {
             cout << "Error: The name of the file is too long" << endl;
-            cout << "Please input the name of the file you want to import: ";
+            cout << "Please input the new new for the file in your system: ";
             continue;
         }
         bool flag = false;
@@ -1848,6 +1863,7 @@ bool os::openFileMode(string arg) {
                     }
                     int offset = strtol(choice[1].c_str(), nullptr, 10);
                     lseek(openingFile, offset);
+                    cout << "Please input the next command:";
                 } else {
                     cout << "Error: Wrong command" << endl;
                     cout << "Please input the next command:";
@@ -2195,7 +2211,7 @@ void os::run() {
             ready = false;  // ready 变为 false
             cv.notify_all();    // 唤醒
         }
-            // *9 rmdir 方法
+        // *9 rmdir 方法
         else if (message == 9) {
             if (argument.empty()) {
                 cout << "argument is empty!" << endl;
@@ -2204,7 +2220,6 @@ void os::run() {
                 argument.erase(0, 1);
                 // 删除文件夹
                 removeDirectory(argument);
-//                cout<<"??"<<endl;
             }
             argument = "";
             message = 0;

@@ -61,3 +61,84 @@
 
 ## 实现
 
+### `cd`
+
+`cd`指令的实现过程可以概括如下：
+
+1. 接收一个目录路径作为参数，例如`cd new`表示切换到名为"new"的子目录。
+
+2. 解析目录路径，将其拆分为不同的部分。
+
+3. 根据解析的结果进行不同的操作：
+    - 如果路径以"."开头，表示相对于当前目录进行操作：
+        - 如果路径为".."，表示返回上级目录。
+        - 如果路径为"."，表示保持当前目录不变。
+        - 否则，表示无效命令。
+    - 如果路径以其他字符串开头，表示相对于根目录进行操作：
+        - 清除目录栈。
+        - 将根目录作为当前目录，并将其压入目录栈。
+        - 依次进入路径中的每个子目录，更新当前目录和目录栈，并打开当前目录。
+
+4. 更新当前目录的文件列表，以反映切换后的目录。
+
+5. 完成`cd`指令的操作。
+
+总结起来，`cd`指令的实现过程涉及解析路径、切换目录、更新文件列表等步骤，以实现在文件管理系统中切换当前目录的功能。
+
+`cd /new/a` 的实现过程如下：
+
+1. 检查根目录下是否存在名为 "new" 的子目录。
+
+2. 如果存在 "new" 子目录，则进入该子目录，并更新当前目录和目录栈。
+
+3. 在 "new" 子目录中检查是否存在名为 "a" 的子目录。
+
+4. 如果存在 "a" 子目录，则进入该子目录，并更新当前目录和目录栈。
+
+5. 更新当前目录的文件列表，以反映切换后的目录。
+
+6. 完成 `cd /new/a` 指令的操作。
+
+总结起来，`cd /new/a` 指令的实现过程是先切换到根目录，然后依次进入 "new" 和 "a" 两个子目录，以实现在文件管理系统中切换当前目录的功能。
+
+```c++
+// 删除子目录，递归删除子目录下的所有文件和子目录
+int os::removeDirectory(string name) {
+    // name 是空格隔开的字符串, 例如 "dir1 dir2 dir3" ，将其转换为 vector
+    vector<string> dirNames;
+    string temp;
+    for (int i = 0; i < name.size(); i++) {
+        if (name[i] == ' ') {
+            dirNames.push_back(temp);
+            temp = "";
+        } else {
+            temp += name[i];
+        }
+    }
+    dirNames.push_back(temp);
+    int n = -1;
+    int deleteNumber;
+    for (int i = 0; i < dirNames.size(); i++) {
+        for (int j = 0; j < filesInCatalog.size(); j++) {
+            if (fcbs[filesInCatalog[j]].name == dirNames[i] && fcbs[filesInCatalog[j]].type == 1) {
+                n = filesInCatalog[j];
+                deleteNumber = j;
+                break;
+            }
+        }
+        if (n == -1) {
+            cout << "Error: Directory " << dirNames[i] << " is not exist!" << endl;
+            return -1;
+        }
+        vector<int> stack;
+        findAllFiles(stack, n);
+        for (int j = 0; j < stack.size(); j++) {
+            deleteFileSystemFile(stack[j]);
+        }
+        cout << "Delete directory " << dirNames[i] << " successfully!" << endl;
+        filesInCatalog.erase(filesInCatalog.begin() + deleteNumber);
+        saveFileSys(currentCatalog, filesInCatalog);
+    }
+    return 1;
+}
+```
