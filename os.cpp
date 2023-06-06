@@ -22,7 +22,7 @@
 #define fatLength (4+2)*9216
 #define bitMapLength (1+2)*9216
 
-#define VERSION "0.6.1 LTS"
+#define VERSION "0.6.6 LTS"
 
 // 存储目录结构
 vector<int> dirStack;
@@ -1661,6 +1661,14 @@ int os::importFileFromOut(string arg) {
     return 1;
 }
 
+/*
+ * exportFileToOut 函数，用于将文件导出到外存，参数为文件描述符，执行后将文件导出到外存，如果导出失败，返回-1
+ * 参数 arg 为文件名
+ * 实现过程：
+ * 1. 遍历 filesInCatalog，找到文件名为 arg 的文件
+ * 2. 将文件内容写入到 arg+'.txt' 文件中
+ * 3. 导出成功，返回 1
+ * */
 int os::exportFileToOut(string arg) {
     // arg 是由空格分隔的字符串，将其拆分为 vector
     vector<string> v;
@@ -1885,10 +1893,12 @@ void os::showTime() {
 }
 
 void os::showVersion() {
+    cout<<endl;
     cout << "MiniOS " << VERSION << endl;
     cout << "Made by ChengZihan,BJFU" << endl;
     cout << "* June 1st, 2023" << endl;
     cout << "GitHub:" << " https://github.com/inannan423 " << endl;
+    cout<<endl;
 }
 
 // cmd 线程，用于接收用户输入
