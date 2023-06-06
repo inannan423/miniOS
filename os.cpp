@@ -83,6 +83,7 @@ bool os::update() {
     }
     file.seekg(0, ios::beg);//将文件指针定位到文件开头
     file >> ss;
+    // 检查是否修改
     if (strtod(ss.c_str(), nullptr) == modifedTimes) {
         return true;
     } else {
@@ -115,6 +116,7 @@ int stringToInt(const string &str) {
     return strtol(str.c_str(), nullptr, 10);
 }
 
+// 获取真实的字符串，例如 "czh%"，返回 "czh"
 string getTrueFileStrings(string s) {
     string str = "";
     for (int i = 0; i < s.length(); i++) {
@@ -347,15 +349,17 @@ void os::updateData(){
 
 // 创建函数，用于保存修改过的文件系统
 bool os::saveFileSys(int f, string content) {
+    // 1. 锁定文件
     unique_lock<mutex> fileLock(fileMutex);
     fstream file;
     string ss;
+    // 2. 打开文件
     file.open("disk.txt", ios::out | ios::in);
     if (!file.is_open()) {
         cout << "Error: Can't open file!" << endl;
         return false;
     }
-    // 定位到 fcbs 开始的位置
+    // 3.定位到 fcbs 开始的位置
     file.seekg(modifedTimesLength + userLength + fatLength + bitMapLength + 63 * f, ios::beg);
     file << fcbs[f].isused << endl;
     file << fcbs[f].isHide << endl;
@@ -367,12 +371,13 @@ bool os::saveFileSys(int f, string content) {
     // address 4 位 补齐
     file << fillFileStrings(intToString(fcbs[f].address, 4), 4) << endl;
     file << fillFileStrings(fcbs[f].modifyTime, 12) << endl;
-    // 定位到用户数据块
+    // 4.定位到用户数据块
     file.seekg(userDataAddress + fcbs[f].address * 1026, ios::beg);  // 1024 + 2（换行符）
     int blockNum = fcbs[f].size / 1024;   // 用于记录当前文件需要多少个块
     string temp;    // 用于记录当前块的内容
     int addressPointer = 0;  // 用于记录当前块的地址指针
     int nowAddress = fcbs[f].address;   // 用于记录当前块的地址
+    // 5.开始写入文件内容
     while (true) {
         if (blockNum <= 0) {
             break;
@@ -381,6 +386,7 @@ bool os::saveFileSys(int f, string content) {
         int big = 0;
         int i = addressPointer;   // 用于记录当前块的迭代次数
         while (true) {
+            // 一个块最多 1024 个字符
             if (content[i] == '\n') {
                 big += 2;
             } else {
@@ -395,7 +401,9 @@ bool os::saveFileSys(int f, string content) {
         addressPointer += big;
         blockNum--;
         file << temp << endl;
+        // 如果当前块已经写满，则需要分配下一个块
         fatBlock[nowAddress] = getEmptyBlock();
+        // 如果当前块是最后一个块，则无法分配下一个块
         if (fatBlock[nowAddress] == -1) {
             fatBlock[nowAddress] = 0;
             return false;
@@ -406,6 +414,7 @@ bool os::saveFileSys(int f, string content) {
     temp = content.substr(addressPointer, content.size() - addressPointer);
     file << temp;
 
+    // 6.填充空白
     int size = 0;
     int big = 0;
     int j = addressPointer;
@@ -546,6 +555,7 @@ int os::makeDirectory(int u) {
             cout << "Error: Can't create directory!" << endl;
             return -1;
         }
+        // 用户的根目录为创建的目录
         user[nowUser].root = voidFcb;
 
         // 创建 README.txt
@@ -652,6 +662,7 @@ int os::makeDirectory(int u) {
         } else {
             cout << "Create directory successfully!" << endl;
         }
+        // 更新目录项
         filesInCatalog.push_back(voidFcb);
         for (int i = 2; i < catalogStack.size(); i++) {
             fcbs[catalogStack[i]].modifyTime = getCurrentTime();
@@ -762,6 +773,7 @@ int os::makeFile(string name, string content) {
     return n;
 }
 
+// 递归查找当前目录下所有文件和目录
 void os::findAllFiles(vector<int> &files, int fcb) {
 //    cout<<"fcb: "<<fcb<<endl;
     files.push_back(fcb);
@@ -1034,7 +1046,7 @@ void os::userRegister() {
     user[u].password = password;
     user[u].isused = 1;
     user[u].root = 0;
-    cout << "*** User " << user[u].username << " regist successfully!" << endl;
+    cout << "*** User " << user[u].username << " register successfully!" << endl;
     makeDirectory(u);
     saveUserToFile(u);
 }
