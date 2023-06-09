@@ -1763,6 +1763,7 @@ bool os::rename(string arg) {
     saveFcbToFile(n);
     cout << "Rename successfully!" << endl;
     return true;
+    return true;
 }
 
 bool os::openFileMode(string arg) {
