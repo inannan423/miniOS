@@ -19,7 +19,7 @@ public:
     int isHide; // 1位，是否隐藏
     string name; // 20位，文件名
     int type;	// 1位，类别 0：文件 1：目录
-    int user;	// 1位，用户 0：root 1：user
+    int user;	// 1位，用户
     int size;	// 7位，文件大小
     int address; // 4位，物理地址
     string modifyTime; // 12位，修改时间
