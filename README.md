@@ -3,7 +3,7 @@
 ![image](https://github.com/inannan423/miniOS/assets/83146544/708ab853-93a4-419c-9e55-46ee925b8429)
 
 
-## 任务书
+## 任务
 
 ### 第一部分 磁盘模拟
 
@@ -19,27 +19,6 @@
 
 - `import c:\a.txt .`  将本地C盘下的a.txt导入到当前目录。
 - `export a.txt c:\`   将当前目录下的a.txt导出到本地C盘。
-
-## 评分标准
-
-### 50-70分档，仅实现一个命令解释执行的shell程序
-
-实现要求：
-1， 要求至少完成cd，dir，mkdir，rmdir，create，open，read, write, close, lseek，help，time，ver，rename。实现时，可以用windows或者linux系统，尤其是目录访问过程。例如，GetCurrentDirectory，FindFile，FindFileNext等函数
-2， 命令的主要功能要实现，例如 “dir *.txt” “dir /s”等，实现过少，则认为没有实现该命令。
-
-### 70-90分档，在上一档的shell基础上，实现了在一个物理文件中模拟文件系统的功能
-
-实现要求：
-1，该物理文件为二进制文件。
-2，实习报告中需要给出所模拟的文件系统格式。
-3，能静态保存虚拟文件系统的内容，即上次程序运行保存的内容，下次程序运行能看到。
-4，实现import, export功能；
-
-### 90分以上档，又实现了多个shell可以同时运行操作同一个模拟文件系统的物理文件
-
-实现要求：
-完整实现最好，能给出有效解决途径或者设计思路，写在实习报告中也给一定分数。
 
 ## 命令
 
