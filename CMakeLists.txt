@@ -7,4 +7,3 @@ set(CMAKE_EXE_LINKER_FLAGS "-static")
 link_libraries(ws2_32 wsock32)
 
 add_executable(miniOS main.cpp os.h os.cpp fcb.cpp fcb.h user.h)
-add_executable(temp temp.c)
